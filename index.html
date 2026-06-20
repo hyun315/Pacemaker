@@ -164,11 +164,11 @@
       <div class="card-title">📣 응원 보이스</div>
       <div class="switch" id="cheerSwitch"></div>
     </div>
-    <div class="footnote" style="margin-top:-2px; margin-bottom:10px;">메트로놈 박자에 맞춰 "하나, 둘"을 외쳐주고, 가끔 응원 멘트를 섞어줘요</div>
+    <div class="footnote" style="margin-top:-2px; margin-bottom:10px;">달리는 동안 무작위 응원 멘트를 들려줘요 (박자와 무관)</div>
     <div class="cadence-row">
-      <span style="font-size:12px; color:var(--sub); width:54px;">강도</span>
-      <input type="range" id="cheerFreqSlider" min="4" max="16" value="8" step="1">
-      <div class="cadence-val" id="cheerFreqVal">8박마다</div>
+      <span style="font-size:12px; color:var(--sub); width:54px;">빈도</span>
+      <input type="range" id="cheerFreqSlider" min="15" max="60" value="30" step="5">
+      <div class="cadence-val" id="cheerFreqVal">~30초</div>
     </div>
   </div>
 
@@ -204,12 +204,18 @@
   let metroOn = false;
   let cadence = 172;
   let cheerOn = false;
-  let cheerEvery = 8; // inject encouragement every N beats
+  let cheerIntervalSec = 30; // base seconds between cheers (randomized +/-)
   let cheerTimer = null;
-  let cheerBeat = 0;
+  let lastCheerPhrase = '';
+  let lastMilestoneKm = 0;
   const cheerPhrases = [
     '좋아요 그 페이스 그대로!','잘 하고 있어요!','조금만 더!','힘내요!',
-    '거의 다 왔어요!','자세 좋아요!','호흡 편하게!','파이팅!'
+    '거의 다 왔어요!','자세 좋아요, 어깨 힘 빼고!','호흡 편안하게!','파이팅!',
+    '잘 달리고 있어요!','지금 컨디션 좋아요!','한 걸음씩 천천히!','오늘 정말 잘하고 있어요!',
+    '리듬 잘 타고 있어요!','시선은 정면으로!'
+  ];
+  const milestonePhrases = [
+    '킬로미터 통과! 좋은 페이스예요','킬로미터 찍었어요! 계속 가요','킬로미터! 페이스 안정적이에요'
   ];
   let listening = false;
   let recognition = null;
@@ -416,14 +422,15 @@
   };
 
   // ---------- Cheer voice (하나둘) ----------
+  // ---------- Cheer voice (random encouragement) ----------
   function cheerTick(){
-    cheerBeat++;
-    if(cheerBeat % cheerEvery === 0){
-      const phrase = cheerPhrases[Math.floor(Math.random()*cheerPhrases.length)];
-      speakFast(phrase);
-    } else {
-      speakFast(cheerBeat % 2 === 1 ? '하나' : '둘');
-    }
+    let phrase;
+    do {
+      phrase = cheerPhrases[Math.floor(Math.random()*cheerPhrases.length)];
+    } while(phrase === lastCheerPhrase && cheerPhrases.length > 1);
+    lastCheerPhrase = phrase;
+    speakFast(phrase);
+    scheduleNextCheer();
   }
   function speakFast(text){
     if(!voiceOn) return;
@@ -432,18 +439,30 @@
       const v = pickVoice(voiceGender);
       if(v) u.voice = v;
       u.lang = 'ko-KR';
-      u.rate = 1.5; u.pitch = voiceGender==='male' ? 0.85 : 1.1; u.volume = 0.9;
+      u.rate = 1.15; u.pitch = voiceGender==='male' ? 0.85 : 1.1; u.volume = 0.95;
       speechSynthesis.speak(u);
     }catch(e){}
   }
+  function scheduleNextCheer(){
+    clearTimeout(cheerTimer);
+    const jitter = cheerIntervalSec * (0.7 + Math.random()*0.6); // +-30% randomness
+    cheerTimer = setTimeout(cheerTick, jitter*1000);
+  }
   function startCheer(){
     stopCheer();
-    cheerBeat = 0;
-    const interval = 60000/cadence;
-    cheerTimer = setInterval(cheerTick, interval);
+    scheduleNextCheer();
   }
   function stopCheer(){
-    if(cheerTimer){ clearInterval(cheerTimer); cheerTimer = null; }
+    if(cheerTimer){ clearTimeout(cheerTimer); cheerTimer = null; }
+  }
+  function checkMilestone(){
+    if(!cheerOn || !running) return;
+    const km = Math.floor(totalDistanceM/1000);
+    if(km > lastMilestoneKm && km > 0){
+      lastMilestoneKm = km;
+      const mp = milestonePhrases[Math.floor(Math.random()*milestonePhrases.length)];
+      speakFast(km + ' ' + mp);
+    }
   }
   $('cheerSwitch').onclick = ()=>{
     cheerOn = !cheerOn;
@@ -496,6 +515,19 @@
       updateTargetLabel();
       speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 낮췄어요');
       matched = true;
+    } else if(/케이던스/.test(text)){
+      const cm = text.match(/케이던스\D*(\d{2,3})/);
+      if(cm){
+        let val = parseInt(cm[1],10);
+        val = Math.max(140, Math.min(200, val));
+        cadence = val;
+        $('cadenceSlider').value = val;
+        $('cadenceVal').textContent = val+' spm';
+        if(metroOn) startMetronome();
+        if(cheerOn) startCheer();
+        speak('케이던스를 ' + val + '로 설정했어요');
+        matched = true;
+      }
     } else {
       // "n분 [m초] 페이스" 형태 파싱
       const m = text.match(/(\d+)\s*분(?:\s*(\d+)\s*초)?/);
