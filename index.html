@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>러닝 페이스메이커</title>
+<style>
+  :root{
+    --bg:#0c1410;
+    --panel:#121d17;
+    --line:#23362a;
+    --track:#7ed957;
+    --track-dim:#3e6b35;
+    --warn:#e8a23a;
+    --fast:#5aa8ff;
+    --text:#eaf2ea;
+    --sub:#7e9786;
+    --mono: 'SF Mono','Roboto Mono', monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{
+    margin:0; background:
+      radial-gradient(circle at 50% -10%, #14241a 0%, var(--bg) 55%);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    min-height:100vh; display:flex; justify-content:center;
+    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+  }
+  .app{ width:100%; max-width:440px; padding:18px 18px 32px; display:flex; flex-direction:column; gap:16px;}
+
+  .topbar{display:flex; align-items:center; justify-content:space-between; padding:4px 2px;}
+  .topbar .brand{font-family:var(--mono); font-size:12px; letter-spacing:.18em; color:var(--sub); text-transform:uppercase;}
+  .status-dot{width:8px;height:8px;border-radius:50%; background:#3e6b35; box-shadow:0 0 0 0 rgba(126,217,87,.5);}
+  .status-dot.live{background:var(--track); animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(126,217,87,.45)}70%{box-shadow:0 0 0 9px rgba(126,217,87,0)}100%{box-shadow:0 0 0 0 rgba(126,217,87,0)}}
+
+  /* Hero pace dial */
+  .dial-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; padding:22px 0 6px;}
+  .dial{ position:relative; width:280px; height:280px; }
+  .dial svg{transform:rotate(-90deg);}
+  .dial-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+  .pace-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.2em; color:var(--sub); text-transform:uppercase; margin-bottom:6px;}
+  .pace-value{font-family:var(--mono); font-size:54px; font-weight:600; line-height:1; letter-spacing:-1px;}
+  .pace-unit{font-size:13px; color:var(--sub); margin-top:6px;}
+  .delta{margin-top:10px; font-family:var(--mono); font-size:13px; padding:4px 12px; border-radius:20px; border:1px solid var(--line);}
+  .delta.ok{color:var(--track); border-color:var(--track-dim);}
+  .delta.fast{color:var(--fast); border-color:#1d3a5c;}
+  .delta.slow{color:var(--warn); border-color:#5c3f12;}
+
+  .target-row{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:4px;}
+  .target-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line); background:var(--panel); color:var(--text); font-size:18px; display:flex;align-items:center;justify-content:center; cursor:pointer;}
+  .target-btn:active{background:#1a2a20;}
+  .target-label{font-family:var(--mono); font-size:14px; color:var(--sub); min-width:118px; text-align:center;}
+  .target-label b{color:var(--text); font-weight:600;}
+
+  /* Metric strip */
+  .metrics{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
+  .metric{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 10px; text-align:center;}
+  .metric .v{font-family:var(--mono); font-size:20px; font-weight:600;}
+  .metric .l{font-size:10.5px; color:var(--sub); margin-top:4px; letter-spacing:.05em; text-transform:uppercase;}
+
+  /* Cards */
+  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; }
+  .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
+  .card-title{font-size:13px; font-weight:600; letter-spacing:.02em;}
+  .card-title .icon{margin-right:6px;}
+
+  .switch{position:relative; width:44px; height:26px; border-radius:14px; background:#23362a; border:1px solid var(--line); cursor:pointer; transition:.2s;}
+  .switch.on{background:var(--track-dim);}
+  .switch::after{content:'';position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#9fb6a4; transition:.2s;}
+  .switch.on::after{transform:translateX(18px); background:var(--track);}
+
+  .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
+  .pill{flex:1; padding:9px 6px; text-align:center; border-radius:10px; border:1px solid var(--line); background:#0f1812; color:var(--sub); font-size:13px; cursor:pointer;}
+  .pill.active{ background:#16331f; color:var(--track); border-color:var(--track-dim); font-weight:600;}
+
+  .cadence-row{display:flex; align-items:center; gap:12px;}
+  .cadence-row input[type=range]{flex:1; accent-color:var(--track);}
+  .cadence-val{font-family:var(--mono); width:64px; text-align:right; font-size:15px;}
+
+  .voice-log{ font-family:var(--mono); font-size:12.5px; color:var(--sub); min-height:18px; }
+  .voice-log b{color:var(--track);}
+
+  .cmd-hint{font-size:11.5px; color:var(--sub); line-height:1.6; margin-top:6px;}
+  .cmd-hint code{background:#0f1812; padding:1px 6px; border-radius:5px; color:#bcd2c2; font-family:var(--mono);}
+
+  .start-btn{
+    margin-top:4px; width:100%; padding:18px; border:none; border-radius:18px;
+    background:var(--track); color:#0c1410; font-size:17px; font-weight:700; letter-spacing:.02em;
+    cursor:pointer; transition:.15s;
+  }
+  .start-btn.running{background:#28201a; color:#e0816b; border:1px solid #5c3422;}
+  .start-btn:active{transform:scale(.98);}
+
+  .gps-warning{ font-size:12px; color:var(--warn); text-align:center; }
+  .footnote{ text-align:center; font-size:10.5px; color:var(--sub); margin-top:-4px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="topbar">
+    <div class="brand">PACE · COACH</div>
+    <div style="display:flex; align-items:center; gap:6px;">
+      <div class="status-dot" id="gpsDot"></div>
+      <span style="font-family:var(--mono); font-size:11px; color:var(--sub);" id="gpsLabel">GPS 대기</span>
+    </div>
+  </div>
+
+  <div class="dial-wrap">
+    <div class="dial">
+      <svg width="280" height="280">
+        <circle cx="140" cy="140" r="118" fill="none" stroke="#1a2a20" stroke-width="14"/>
+        <circle id="ring" cx="140" cy="140" r="118" fill="none" stroke="var(--track)" stroke-width="14"
+                stroke-linecap="round" stroke-dasharray="741.5" stroke-dashoffset="741.5"/>
+      </svg>
+      <div class="dial-center">
+        <div class="pace-eyebrow">현재 페이스</div>
+        <div class="pace-value" id="paceValue">--:--</div>
+        <div class="pace-unit">분 / km</div>
+        <div class="delta ok" id="deltaTag">대기 중</div>
+      </div>
+    </div>
+    <div class="target-row">
+      <div class="target-btn" id="tgtDown">−</div>
+      <div class="target-label">목표 <b id="targetLabel">5:30</b> /km</div>
+      <div class="target-btn" id="tgtUp">+</div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric"><div class="v" id="distVal">0.00</div><div class="l">거리 km</div></div>
+    <div class="metric"><div class="v" id="timeVal">00:00</div><div class="l">시간</div></div>
+    <div class="metric"><div class="v" id="avgVal">--:--</div><div class="l">평균 페이스</div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🔊 음성 코치</div>
+      <div class="switch on" id="voiceSwitch"></div>
+    </div>
+    <div class="pill-row">
+      <div class="pill active" data-voice="female">여성 목소리</div>
+      <div class="pill" data-voice="male">남성 목소리</div>
+    </div>
+    <div class="cmd-hint" style="margin-top:10px;">달리는 중 말로 명령하세요: <code>빨리</code> · <code>느리게</code> · <code>5분 페이스</code></div>
+    <div class="voice-log" id="cmdLog"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🥁 메트로놈 (케이던스)</div>
+      <div class="switch" id="metroSwitch"></div>
+    </div>
+    <div class="cadence-row">
+      <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
+      <div class="cadence-val" id="cadenceVal">172 spm</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-title">🎙️ 음성 명령 인식</div>
+      <div class="switch" id="listenSwitch"></div>
+    </div>
+    <div class="footnote" id="recogStatus">꺼짐 — 화면을 켜둔 상태에서만 동작합니다</div>
+  </div>
+
+  <button class="start-btn" id="startBtn">러닝 시작</button>
+  <div class="gps-warning" id="gpsWarn"></div>
+
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const RING_LEN = 741.5;
+
+  // ---------- State ----------
+  let targetPaceSec = 330; // 5:30 /km in seconds
+  let running = false;
+  let watchId = null;
+  let startTime = null, elapsedTimer = null;
+  let totalDistanceM = 0;
+  let lastPos = null;
+  let currentSpeedMps = 0; // smoothed
+  let speedSamples = [];
+  let voiceOn = true;
+  let voiceGender = 'female';
+  let metroOn = false;
+  let cadence = 172;
+  let listening = false;
+  let recognition = null;
+  let audioCtx = null, metroTimer = null;
+  let lastCoachTime = 0;
+  let availableVoices = [];
+
+  // ---------- Helpers ----------
+  function fmtPace(sec){
+    if(!isFinite(sec) || sec<=0 || sec>900) return '--:--';
+    const m = Math.floor(sec/60), s = Math.round(sec%60);
+    return m+':'+String(s).padStart(2,'0');
+  }
+  function fmtTime(sec){
+    const m = Math.floor(sec/60), s = Math.floor(sec%60);
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
+
+  function updateTargetLabel(){ $('targetLabel').textContent = fmtPace(targetPaceSec); }
+  updateTargetLabel();
+
+  $('tgtUp').onclick = ()=>{ targetPaceSec = Math.max(180, targetPaceSec-10); updateTargetLabel(); };
+  $('tgtDown').onclick = ()=>{ targetPaceSec = Math.min(720, targetPaceSec+10); updateTargetLabel(); };
+
+  // ---------- Voices ----------
+  function loadVoices(){
+    availableVoices = speechSynthesis.getVoices();
+  }
+  loadVoices();
+  if('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+
+  function pickVoice(gender){
+    const koVoices = availableVoices.filter(v=>v.lang && v.lang.toLowerCase().startsWith('ko'));
+    const pool = koVoices.length ? koVoices : availableVoices;
+    // heuristics by common name patterns
+    const maleHints = ['male','man','민준','준','형','Junior','Daniel','David','Alex'];
+    const femaleHints = ['female','woman','여','지민','수정','유나','Samantha','Yuna','Sora'];
+    let pick = pool.find(v => (gender==='male'?maleHints:femaleHints).some(h=>v.name.includes(h)));
+    if(!pick) pick = pool[gender==='male' ? Math.min(1,pool.length-1) : 0];
+    return pick || availableVoices[0];
+  }
+
+  function speak(text){
+    if(!voiceOn) return;
+    try{
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      const v = pickVoice(voiceGender);
+      if(v) u.voice = v;
+      u.lang = 'ko-KR';
+      u.rate = 1.0; u.pitch = voiceGender==='male' ? 0.85 : 1.05;
+      speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  document.querySelectorAll('.pill[data-voice]').forEach(p=>{
+    p.onclick = ()=>{
+      document.querySelectorAll('.pill[data-voice]').forEach(x=>x.classList.remove('active'));
+      p.classList.add('active');
+      voiceGender = p.dataset.voice;
+      speak(voiceGender==='male' ? '남성 목소리로 변경했습니다' : '여성 목소리로 변경했습니다');
+    };
+  });
+
+  $('voiceSwitch').onclick = ()=>{
+    voiceOn = !voiceOn;
+    $('voiceSwitch').classList.toggle('on', voiceOn);
+    if(!voiceOn) speechSynthesis.cancel();
+  };
+
+  // ---------- Coaching logic ----------
+  function coachTick(){
+    if(!running) return;
+    const now = Date.now();
+    if(now - lastCoachTime < 20000) return; // every ~20s
+    lastCoachTime = now;
+    if(currentSpeedMps <= 0.3){
+      speak('속도가 거의 없어요. 페이스를 확인해주세요');
+      return;
+    }
+    const curPaceSec = 1000/currentSpeedMps;
+    const diff = curPaceSec - targetPaceSec; // positive = slower than target
+    if(Math.abs(diff) <= 8){
+      speak('좋아요, 목표 페이스를 잘 유지하고 있어요');
+    } else if(diff > 8){
+      speak('조금 느려요. 속도를 살짝 올려보세요');
+    } else {
+      speak('너무 빨라요. 약간 늦춰주세요');
+    }
+  }
+
+  // ---------- GPS ----------
+  function handlePosition(pos){
+    $('gpsDot').classList.add('live');
+    $('gpsLabel').textContent = 'GPS 연결됨';
+    $('gpsWarn').textContent = '';
+
+    const {latitude, longitude, speed, accuracy} = pos.coords;
+    const t = pos.timestamp;
+
+    let instSpeed = (typeof speed === 'number' && speed >= 0) ? speed : null;
+
+    if(lastPos){
+      const dt = (t - lastPos.t)/1000;
+      if(dt > 0.5){
+        const d = haversine(lastPos.lat, lastPos.lon, latitude, longitude);
+        if(accuracy < 30 && d < 50){ // filter GPS jumps
+          totalDistanceM += d;
+          if(instSpeed === null) instSpeed = d/dt;
+        }
+      }
+    }
+    if(instSpeed !== null){
+      speedSamples.push(instSpeed);
+      if(speedSamples.length > 5) speedSamples.shift();
+      currentSpeedMps = speedSamples.reduce((a,b)=>a+b,0)/speedSamples.length;
+    }
+    lastPos = {lat:latitude, lon:longitude, t};
+    renderLive();
+    coachTick();
+  }
+
+  function handleGpsError(err){
+    $('gpsDot').classList.remove('live');
+    $('gpsLabel').textContent = 'GPS 오류';
+    $('gpsWarn').textContent = 'GPS 권한을 확인해주세요: ' + err.message;
+  }
+
+  function haversine(lat1,lon1,lat2,lon2){
+    const R = 6371000;
+    const toRad = d=>d*Math.PI/180;
+    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+    return R * 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function renderLive(){
+    const curPaceSec = currentSpeedMps > 0.2 ? 1000/currentSpeedMps : NaN;
+    $('paceValue').textContent = fmtPace(curPaceSec);
+    $('distVal').textContent = (totalDistanceM/1000).toFixed(2);
+
+    if(startTime){
+      const elapsed = (Date.now()-startTime)/1000;
+      $('timeVal').textContent = fmtTime(elapsed);
+      const avgPace = totalDistanceM > 0 ? elapsed / (totalDistanceM/1000) : NaN;
+      $('avgVal').textContent = fmtPace(avgPace);
+    }
+
+    // ring + delta tag
+    const tag = $('deltaTag');
+    if(isFinite(curPaceSec)){
+      const diff = curPaceSec - targetPaceSec;
+      let frac = Math.max(0, Math.min(1, 1 - (curPaceSec / (targetPaceSec*1.8))));
+      $('ring').setAttribute('stroke-dashoffset', RING_LEN*(1-frac));
+      if(Math.abs(diff)<=8){
+        tag.textContent = '목표 페이스 유지 중'; tag.className='delta ok';
+        $('ring').style.stroke = 'var(--track)';
+      } else if(diff>8){
+        tag.textContent = `목표보다 ${fmtPace(diff)} 느림`; tag.className='delta slow';
+        $('ring').style.stroke = 'var(--warn)';
+      } else {
+        tag.textContent = `목표보다 ${fmtPace(-diff)} 빠름`; tag.className='delta fast';
+        $('ring').style.stroke = 'var(--fast)';
+      }
+    } else {
+      tag.textContent = '측정 중...'; tag.className='delta ok';
+    }
+  }
+
+  // ---------- Metronome ----------
+  function ensureAudioCtx(){
+    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  }
+  function clickSound(){
+    ensureAudioCtx();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.frequency.value = 1100;
+    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.06);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime+0.07);
+  }
+  function startMetronome(){
+    ensureAudioCtx();
+    stopMetronome();
+    const interval = 60000/cadence;
+    metroTimer = setInterval(clickSound, interval);
+  }
+  function stopMetronome(){
+    if(metroTimer){ clearInterval(metroTimer); metroTimer = null; }
+  }
+
+  $('metroSwitch').onclick = ()=>{
+    metroOn = !metroOn;
+    $('metroSwitch').classList.toggle('on', metroOn);
+    if(metroOn) startMetronome(); else stopMetronome();
+  };
+  $('cadenceSlider').oninput = (e)=>{
+    cadence = parseInt(e.target.value,10);
+    $('cadenceVal').textContent = cadence+' spm';
+    if(metroOn) startMetronome();
+  };
+
+  // ---------- Voice command recognition ----------
+  function setupRecognition(){
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){
+      $('recogStatus').textContent = '이 브라우저는 음성 인식을 지원하지 않습니다';
+      $('listenSwitch').style.opacity = 0.4;
+      $('listenSwitch').onclick = null;
+      return;
+    }
+    recognition = new SR();
+    recognition.lang = 'ko-KR';
+    recognition.continuous = true;
+    recognition.interimResults = false;
+
+    recognition.onresult = (e)=>{
+      const text = e.results[e.results.length-1][0].transcript.trim();
+      handleVoiceCommand(text);
+    };
+    recognition.onerror = (e)=>{
+      $('recogStatus').textContent = '인식 오류: '+e.error+' (다시 시도 중)';
+    };
+    recognition.onend = ()=>{
+      if(listening){ try{ recognition.start(); }catch(e){} } // auto-restart
+    };
+  }
+
+  function handleVoiceCommand(text){
+    $('cmdLog').innerHTML = '들음: <b>"'+text+'"</b>';
+    let matched = false;
+
+    if(/빨리|더\s*빠르게|스피드\s*업/.test(text)){
+      targetPaceSec = Math.max(180, targetPaceSec - 15);
+      updateTargetLabel();
+      speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 올렸어요');
+      matched = true;
+    } else if(/느리게|천천히|슬로우/.test(text)){
+      targetPaceSec = Math.min(720, targetPaceSec + 15);
+      updateTargetLabel();
+      speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 낮췄어요');
+      matched = true;
+    } else {
+      // "n분 [m초] 페이스" 형태 파싱
+      const m = text.match(/(\d+)\s*분(?:\s*(\d+)\s*초)?/);
+      if(m){
+        const min = parseInt(m[1],10);
+        const sec = m[2] ? parseInt(m[2],10) : 0;
+        targetPaceSec = Math.min(720, Math.max(120, min*60+sec));
+        updateTargetLabel();
+        speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 설정했어요');
+        matched = true;
+      }
+    }
+    if(!matched){
+      $('cmdLog').innerHTML += ' — 명령을 이해하지 못했어요';
+    }
+  }
+
+  $('listenSwitch').onclick = ()=>{
+    if(!recognition) setupRecognition();
+    if(!recognition) return;
+    listening = !listening;
+    $('listenSwitch').classList.toggle('on', listening);
+    if(listening){
+      try{ recognition.start(); }catch(e){}
+      $('recogStatus').textContent = '켜짐 — "빨리", "느리게", "5분 페이스"라고 말해보세요';
+    } else {
+      recognition.stop();
+      $('recogStatus').textContent = '꺼짐';
+    }
+  };
+
+  // ---------- Start / Stop ----------
+  $('startBtn').onclick = ()=>{
+    if(!running){
+      if(!navigator.geolocation){
+        $('gpsWarn').textContent = '이 기기에서 GPS를 사용할 수 없습니다';
+        return;
+      }
+      running = true;
+      startTime = Date.now();
+      totalDistanceM = 0; lastPos = null; speedSamples = []; lastCoachTime = 0;
+      $('startBtn').textContent = '러닝 종료';
+      $('startBtn').classList.add('running');
+      watchId = navigator.geolocation.watchPosition(handlePosition, handleGpsError, {
+        enableHighAccuracy:true, maximumAge:1000, timeout:10000
+      });
+      elapsedTimer = setInterval(renderLive, 1000);
+      speak('러닝을 시작합니다. 목표 페이스는 ' + fmtPace(targetPaceSec) + ' 입니다');
+      if(metroOn) startMetronome();
+    } else {
+      running = false;
+      $('startBtn').textContent = '러닝 시작';
+      $('startBtn').classList.remove('running');
+      if(watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if(elapsedTimer) clearInterval(elapsedTimer);
+      stopMetronome();
+      const dist = (totalDistanceM/1000).toFixed(2);
+      speak('러닝을 종료합니다. 총 거리 ' + dist + '킬로미터 수고하셨습니다');
+    }
+  };
+
+})();
+</script>
+</body>
+</html>
