@@ -973,6 +973,12 @@ function fmtPace(sec) {
   const m = Math.floor(sec / 60), s = Math.round(sec % 60);
   return m + ':' + String(s).padStart(2, '0');
 }
+// TTS용: "5:30" → "오분 삼십초" 로 읽히도록
+function speakPace(sec) {
+  if (!isFinite(sec) || sec <= 0 || sec > 900) return '알 수 없음';
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return s > 0 ? m + '분 ' + s + '초' : m + '분';
+}
 function fmtTime(totalSec) {
   const s = Math.floor(totalSec);
   const m = Math.floor(s / 60), rem = s % 60;
@@ -989,8 +995,8 @@ function elapsedSec() {
 function updateSetupPace() {
   $('setupPace').textContent = fmtPace(targetPaceSec);
 }
-$('paceUp').onclick   = () => { targetPaceSec = Math.max(180, targetPaceSec - 10); updateSetupPace(); };
-$('paceDown').onclick = () => { targetPaceSec = Math.min(720, targetPaceSec + 10); updateSetupPace(); };
+$('paceUp').onclick   = () => { targetPaceSec = Math.min(720, targetPaceSec + 10); updateSetupPace(); };
+$('paceDown').onclick = () => { targetPaceSec = Math.max(180, targetPaceSec - 10); updateSetupPace(); };
 
 function makeToggle(id, initial, cb) {
   const el = $(id);
@@ -1393,11 +1399,11 @@ function handleCmd(text) {
   if (/빨리|더\s*빠르게/.test(text)) {
     targetPaceSec = Math.max(180, targetPaceSec - 15);
     updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
-    enqueue('cmd', '목표 페이스를 ' + fmtPace(targetPaceSec) + '로 올렸어요', 0);
+    enqueue('cmd', '목표 페이스를 ' + speakPace(targetPaceSec) + '로 올렸어요', 0);
   } else if (/느리게|천천히/.test(text)) {
     targetPaceSec = Math.min(720, targetPaceSec + 15);
     updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
-    enqueue('cmd', '목표 페이스를 ' + fmtPace(targetPaceSec) + '로 낮췄어요', 0);
+    enqueue('cmd', '목표 페이스를 ' + speakPace(targetPaceSec) + '로 낮췄어요', 0);
   } else if (/케이던스/.test(text)) {
     const m = text.match(/케이던스\D*(\d{2,3})/);
     if (m) {
@@ -1413,7 +1419,7 @@ function handleCmd(text) {
     if (m) {
       targetPaceSec = Math.min(720, Math.max(120, +m[1] * 60 + (+m[2] || 0)));
       updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
-      enqueue('cmd', '목표 페이스 ' + fmtPace(targetPaceSec) + '로 변경했어요', 0);
+      enqueue('cmd', '목표 페이스 ' + speakPace(targetPaceSec) + '로 변경했어요', 0);
     } else {
       $('cmdLog').innerHTML += ' — 명령을 이해하지 못했어요';
     }
@@ -1454,7 +1460,7 @@ function startRun() {
   if (cheerOn) scheduleCheer();
 
   setTimeout(() => {
-    enqueue('start', '러닝을 시작합니다. 목표 페이스 ' + fmtPace(targetPaceSec) + '입니다.', 0);
+    enqueue('start', '러닝을 시작합니다. 목표 페이스 ' + speakPace(targetPaceSec) + '입니다.', 0);
   }, 800);
 }
 
