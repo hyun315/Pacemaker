@@ -2,594 +2,1358 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>러닝 페이스메이커</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>PACE ONE</title>
 <style>
-  :root{
-    --bg:#0c1410;
-    --panel:#121d17;
-    --line:#23362a;
-    --track:#7ed957;
-    --track-dim:#3e6b35;
-    --warn:#e8a23a;
-    --fast:#5aa8ff;
-    --text:#eaf2ea;
-    --sub:#7e9786;
-    --mono: 'SF Mono','Roboto Mono', monospace;
-  }
-  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
-  html,body{height:100%;}
-  body{
-    margin:0; background:
-      radial-gradient(circle at 50% -10%, #14241a 0%, var(--bg) 55%);
-    color:var(--text);
-    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    min-height:100vh; display:flex; justify-content:center;
-    padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
-  }
-  .app{ width:100%; max-width:440px; padding:18px 18px 32px; display:flex; flex-direction:column; gap:16px;}
+/* ─────────────────────────────────
+   DESIGN TOKENS — PACE ONE
+───────────────────────────────── */
+:root {
+  --bg:        #0d0f14;
+  --surface:   #151820;
+  --border:    #252a35;
+  --lime:      #c8f500;
+  --lime-dim:  #4a5a00;
+  --orange:    #ff6b35;
+  --red:       #ff3b3b;
+  --blue:      #4da8ff;
+  --text:      #f0f2f5;
+  --sub:       #7a8494;
+  --mono:      'SF Mono','Roboto Mono','Menlo',monospace;
+  --radius:    16px;
+  --safe-top:  env(safe-area-inset-top, 0px);
+  --safe-bot:  env(safe-area-inset-bottom, 0px);
+}
 
-  .topbar{display:flex; align-items:center; justify-content:space-between; padding:4px 2px;}
-  .topbar .brand{font-family:var(--mono); font-size:12px; letter-spacing:.18em; color:var(--sub); text-transform:uppercase;}
-  .status-dot{width:8px;height:8px;border-radius:50%; background:#3e6b35; box-shadow:0 0 0 0 rgba(126,217,87,.5);}
-  .status-dot.live{background:var(--track); animation:pulse 1.6s infinite;}
-  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(126,217,87,.45)}70%{box-shadow:0 0 0 9px rgba(126,217,87,0)}100%{box-shadow:0 0 0 0 rgba(126,217,87,0)}}
+/* ─── RESET ─── */
+*, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+input[type=range] { accent-color: var(--lime); cursor: pointer; }
 
-  /* Hero pace dial */
-  .dial-wrap{ position:relative; display:flex; flex-direction:column; align-items:center; padding:22px 0 6px;}
-  .dial{ position:relative; width:280px; height:280px; }
-  .dial svg{transform:rotate(-90deg);}
-  .dial-center{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
-  .pace-eyebrow{font-family:var(--mono); font-size:11px; letter-spacing:.2em; color:var(--sub); text-transform:uppercase; margin-bottom:6px;}
-  .pace-value{font-family:var(--mono); font-size:54px; font-weight:600; line-height:1; letter-spacing:-1px;}
-  .pace-unit{font-size:13px; color:var(--sub); margin-top:6px;}
-  .delta{margin-top:10px; font-family:var(--mono); font-size:13px; padding:4px 12px; border-radius:20px; border:1px solid var(--line);}
-  .delta.ok{color:var(--track); border-color:var(--track-dim);}
-  .delta.fast{color:var(--fast); border-color:#1d3a5c;}
-  .delta.slow{color:var(--warn); border-color:#5c3f12;}
+/* ─── SCREENS ─── */
+.screen {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bot);
+}
+.screen.active { display: flex; }
 
-  .target-row{display:flex; align-items:center; justify-content:center; gap:14px; margin-top:4px;}
-  .target-btn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line); background:var(--panel); color:var(--text); font-size:18px; display:flex;align-items:center;justify-content:center; cursor:pointer;}
-  .target-btn:active{background:#1a2a20;}
-  .target-label{font-family:var(--mono); font-size:14px; color:var(--sub); min-width:118px; text-align:center;}
-  .target-label b{color:var(--text); font-weight:600;}
+/* ─── TOPBAR ─── */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px 10px;
+}
+.brand {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  color: var(--lime);
+  text-transform: uppercase;
+}
+.gps-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--sub);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.gps-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--sub);
+  flex-shrink: 0;
+}
+.gps-dot.ok   { background: var(--lime); box-shadow: 0 0 6px var(--lime); animation: blink 2s infinite; }
+.gps-dot.warn { background: var(--orange); }
+.gps-dot.bad  { background: var(--red); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
 
-  /* Metric strip */
-  .metrics{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px;}
-  .metric{ background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:12px 10px; text-align:center;}
-  .metric .v{font-family:var(--mono); font-size:20px; font-weight:600;}
-  .metric .l{font-size:10.5px; color:var(--sub); margin-top:4px; letter-spacing:.05em; text-transform:uppercase;}
+/* ─────────────────────────────────
+   SETUP SCREEN
+───────────────────────────────── */
+#screen-setup {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.setup-body { flex: 1; padding: 4px 18px 24px; display: flex; flex-direction: column; gap: 14px; }
 
-  /* Cards */
-  .card{ background:var(--panel); border:1px solid var(--line); border-radius:16px; padding:16px; }
-  .card-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;}
-  .card-title{font-size:13px; font-weight:600; letter-spacing:.02em;}
-  .card-title .icon{margin-right:6px;}
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .16em;
+  color: var(--sub);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
 
-  .switch{position:relative; width:44px; height:26px; border-radius:14px; background:#23362a; border:1px solid var(--line); cursor:pointer; transition:.2s;}
-  .switch.on{background:var(--track-dim);}
-  .switch::after{content:'';position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:#9fb6a4; transition:.2s;}
-  .switch.on::after{transform:translateX(18px); background:var(--track);}
+/* PACE HERO */
+.pace-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 20px 16px;
+}
+.pace-hero-label { text-align: center; }
+.pace-big-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin: 8px 0;
+}
+.pace-adj {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #1a1e27;
+  color: var(--text);
+  font-size: 22px;
+  display: flex; align-items: center; justify-content: center;
+  user-select: none;
+}
+.pace-adj:active { background: #252a35; }
+.pace-display {
+  font-family: var(--mono);
+  font-size: 52px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  color: var(--lime);
+  line-height: 1;
+  min-width: 110px;
+  text-align: center;
+}
+.pace-unit { font-size: 12px; color: var(--sub); text-align: center; margin-top: 4px; }
 
-  .pill-row{display:flex; gap:8px; flex-wrap:wrap;}
-  .pill{flex:1; padding:9px 6px; text-align:center; border-radius:10px; border:1px solid var(--line); background:#0f1812; color:var(--sub); font-size:13px; cursor:pointer;}
-  .pill.active{ background:#16331f; color:var(--track); border-color:var(--track-dim); font-weight:600;}
+/* CARD */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.card-title { font-size: 13px; font-weight: 600; }
 
-  .cadence-row{display:flex; align-items:center; gap:12px;}
-  .cadence-row input[type=range]{flex:1; accent-color:var(--track);}
-  .cadence-val{font-family:var(--mono); width:64px; text-align:right; font-size:15px;}
+/* TOGGLE SWITCH */
+.toggle {
+  position: relative;
+  width: 46px; height: 27px;
+  border-radius: 14px;
+  background: #252a35;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: background .2s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--lime-dim); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 21px; height: 21px;
+  border-radius: 50%;
+  background: #8a9aaa;
+  transition: transform .2s, background .2s;
+}
+.toggle.on::after { transform: translateX(19px); background: var(--lime); }
 
-  .voice-log{ font-family:var(--mono); font-size:12.5px; color:var(--sub); min-height:18px; }
-  .voice-log b{color:var(--track);}
+/* PILLS */
+.pills { display: flex; gap: 8px; }
+.pill {
+  flex: 1; padding: 9px 4px; text-align: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #1a1e27;
+  color: var(--sub);
+  font-size: 13px;
+  cursor: pointer;
+  transition: .15s;
+}
+.pill.active {
+  background: #1a2800;
+  color: var(--lime);
+  border-color: var(--lime-dim);
+  font-weight: 600;
+}
 
-  .cmd-hint{font-size:11.5px; color:var(--sub); line-height:1.6; margin-top:6px;}
-  .cmd-hint code{background:#0f1812; padding:1px 6px; border-radius:5px; color:#bcd2c2; font-family:var(--mono);}
+/* SLIDER ROW */
+.slider-row { display: flex; align-items: center; gap: 12px; }
+.slider-row input[type=range] { flex: 1; height: 4px; }
+.slider-val {
+  font-family: var(--mono);
+  font-size: 13px;
+  width: 70px;
+  text-align: right;
+  color: var(--text);
+}
 
-  .start-btn{
-    margin-top:4px; width:100%; padding:18px; border:none; border-radius:18px;
-    background:var(--track); color:#0c1410; font-size:17px; font-weight:700; letter-spacing:.02em;
-    cursor:pointer; transition:.15s;
-  }
-  .start-btn.running{background:#28201a; color:#e0816b; border:1px solid #5c3422;}
-  .start-btn:active{transform:scale(.98);}
+/* CMD HINT */
+.cmd-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+}
+.chip {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: #1a1e27;
+  border: 1px solid var(--border);
+  color: #99aabb;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+.voice-log {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--sub);
+  min-height: 16px;
+  margin-top: 8px;
+}
+.voice-log b { color: var(--lime); }
 
-  .gps-warning{ font-size:12px; color:var(--warn); text-align:center; }
-  .footnote{ text-align:center; font-size:10.5px; color:var(--sub); margin-top:-4px;}
+/* START BTN */
+.start-btn {
+  margin: 4px 18px 0;
+  padding: 19px;
+  border-radius: 18px;
+  background: var(--lime);
+  color: #0a0c0f;
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: center;
+  transition: .12s;
+}
+.start-btn:active { transform: scale(.97); opacity: .9; }
+
+/* ─────────────────────────────────
+   RUNNING SCREEN
+───────────────────────────────── */
+#screen-run {
+  position: relative;
+}
+.run-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 18px 12px;
+  gap: 12px;
+}
+
+/* STATUS BAR */
+.status-bar {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  margin: 0 18px 4px;
+  font-size: 12px;
+}
+.status-bar .s-icon { font-size: 14px; }
+.status-bar .s-text { font-weight: 600; }
+.status-bar.ok   { border-color: var(--lime-dim); color: var(--lime); }
+.status-bar.slow { border-color: #5c2800; color: var(--orange); }
+.status-bar.fast { border-color: #0f2a4a; color: var(--blue); }
+.status-bar.gps-bad { border-color: #4a0000; color: var(--red); }
+
+/* MAIN PACE */
+.pace-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px 20px;
+  text-align: center;
+  position: relative;
+}
+.curr-pace-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: var(--sub);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.curr-pace-num {
+  font-family: var(--mono);
+  font-size: 72px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -3px;
+  transition: color .3s;
+}
+.curr-pace-num.ok   { color: var(--lime); }
+.curr-pace-num.slow { color: var(--orange); }
+.curr-pace-num.fast { color: var(--blue); }
+.curr-pace-num.idle { color: var(--sub); }
+.pace-unit-run { font-size: 13px; color: var(--sub); margin-top: 4px; }
+
+.target-row-run {
+  display: flex; align-items: center; justify-content: center;
+  gap: 8px; margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--sub);
+}
+.target-row-run b { color: var(--text); font-size: 14px; }
+
+/* METRICS GRID */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 10px 12px;
+  text-align: center;
+}
+.metric-v {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+.metric-l {
+  font-size: 10px;
+  color: var(--sub);
+  margin-top: 6px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* CADENCE ROW */
+.cadence-row-run {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.cadence-info { display: flex; flex-direction: column; gap: 2px; }
+.cadence-val-run {
+  font-family: var(--mono);
+  font-size: 20px;
+  font-weight: 700;
+}
+.cadence-sub { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; }
+.metro-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #1a1e27;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sub);
+}
+.metro-btn.on { background: #1a2800; color: var(--lime); border-color: var(--lime-dim); }
+
+/* RUN CONTROLS */
+.run-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 0 0 4px;
+}
+.ctrl-btn {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+}
+.ctrl-btn.pause   { color: var(--orange); border-color: #5c2800; }
+.ctrl-btn.stop    { color: var(--red); border-color: #4a0000; }
+.ctrl-btn:active  { opacity: .75; }
+
+/* GPS WARNING OVERLAY */
+.gps-overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(13,15,20,.85);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 10;
+  padding: 30px;
+  text-align: center;
+}
+.gps-overlay.show { display: flex; }
+.gps-overlay-icon { font-size: 48px; }
+.gps-overlay-title { font-size: 18px; font-weight: 700; color: var(--orange); }
+.gps-overlay-sub { font-size: 13px; color: var(--sub); line-height: 1.5; }
+
+/* ─────────────────────────────────
+   RESULTS SCREEN
+───────────────────────────────── */
+#screen-result { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.result-body { flex: 1; padding: 8px 18px 32px; display: flex; flex-direction: column; gap: 16px; }
+
+.result-hero {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  text-align: center;
+}
+.result-hero-icon { font-size: 40px; margin-bottom: 8px; }
+.result-hero-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
+.result-hero-sub { font-size: 13px; color: var(--sub); }
+
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.result-stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 14px;
+}
+.result-stat-v {
+  font-family: var(--mono);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--lime);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.result-stat-l { font-size: 11px; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; }
+
+.coaching-summary {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+.coaching-summary h3 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+.coach-log-item {
+  font-size: 12px;
+  color: var(--sub);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
+}
+.coach-log-item:last-child { border-bottom: none; }
+.coach-log-item b { color: var(--text); }
+
+.again-btn {
+  padding: 18px;
+  border-radius: 18px;
+  background: var(--lime);
+  color: #0a0c0f;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: center;
+}
+.again-btn:active { opacity: .85; }
+
+/* ─── UTILS ─── */
+.mt4 { margin-top: 4px; }
+.sub-text { font-size: 11.5px; color: var(--sub); line-height: 1.5; margin-top: 6px; }
 </style>
 </head>
 <body>
-<div class="app">
 
+<!-- ══════════════════════════════
+     SETUP SCREEN
+══════════════════════════════ -->
+<div class="screen active" id="screen-setup">
   <div class="topbar">
-    <div class="brand">PACE · COACH</div>
-    <div style="display:flex; align-items:center; gap:6px;">
-      <div class="status-dot" id="gpsDot"></div>
-      <span style="font-family:var(--mono); font-size:11px; color:var(--sub);" id="gpsLabel">GPS 대기</span>
+    <div class="brand">PACE ONE</div>
+    <div class="gps-badge">
+      <div class="gps-dot" id="gpsDot"></div>
+      <span id="gpsLabel">GPS 대기</span>
     </div>
   </div>
 
-  <div class="dial-wrap">
-    <div class="dial">
-      <svg width="280" height="280">
-        <circle cx="140" cy="140" r="118" fill="none" stroke="#1a2a20" stroke-width="14"/>
-        <circle id="ring" cx="140" cy="140" r="118" fill="none" stroke="var(--track)" stroke-width="14"
-                stroke-linecap="round" stroke-dasharray="741.5" stroke-dashoffset="741.5"/>
-      </svg>
-      <div class="dial-center">
-        <div class="pace-eyebrow">현재 페이스</div>
-        <div class="pace-value" id="paceValue">--:--</div>
-        <div class="pace-unit">분 / km</div>
-        <div class="delta ok" id="deltaTag">대기 중</div>
+  <div class="setup-body">
+
+    <!-- TARGET PACE -->
+    <div class="pace-hero">
+      <div class="section-label pace-hero-label">목표 페이스</div>
+      <div class="pace-big-row">
+        <button class="pace-adj" id="paceDown">−</button>
+        <div class="pace-display" id="setupPace">5:30</div>
+        <button class="pace-adj" id="paceUp">+</button>
+      </div>
+      <div class="pace-unit">분 / km &nbsp;·&nbsp; 10초 단위</div>
+    </div>
+
+    <!-- VOICE COACH -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🎙️ 음성 코치</div>
+        <div class="toggle on" id="voiceToggle"></div>
+      </div>
+      <div class="pills">
+        <div class="pill active" data-voice="female">여성</div>
+        <div class="pill" data-voice="male">남성</div>
+        <div class="pill" data-voice="min">최소 안내</div>
+      </div>
+      <div class="sub-text mt4">달리며 말로 명령하세요</div>
+      <div class="cmd-chips">
+        <span class="chip">빨리</span>
+        <span class="chip">느리게</span>
+        <span class="chip">5분 페이스</span>
+        <span class="chip">케이던스 180</span>
+      </div>
+      <div class="voice-log" id="cmdLog"></div>
+    </div>
+
+    <!-- VOICE CMD LISTEN -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🎤 음성 명령 인식</div>
+        <div class="toggle" id="listenToggle"></div>
+      </div>
+      <div class="sub-text" id="recogStatus">꺼짐 — 화면을 켜둔 상태에서만 동작합니다</div>
+    </div>
+
+    <!-- METRONOME -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🥁 메트로놈 케이던스</div>
+        <div class="toggle" id="metroToggle"></div>
+      </div>
+      <div class="slider-row">
+        <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
+        <div class="slider-val" id="cadenceVal">172 spm</div>
+      </div>
+      <div class="slider-row mt4" style="margin-top:10px;">
+        <span style="font-size:12px;color:var(--sub);width:36px;">음량</span>
+        <input type="range" id="metroVol" min="0" max="100" value="50" step="5">
+        <div class="slider-val" id="metroVolVal">50%</div>
       </div>
     </div>
-    <div class="target-row">
-      <div class="target-btn" id="tgtDown">−</div>
-      <div class="target-label">목표 <b id="targetLabel">5:30</b> /km</div>
-      <div class="target-btn" id="tgtUp">+</div>
-    </div>
-  </div>
 
-  <div class="metrics">
-    <div class="metric"><div class="v" id="distVal">0.00</div><div class="l">거리 km</div></div>
-    <div class="metric"><div class="v" id="timeVal">00:00</div><div class="l">시간</div></div>
-    <div class="metric"><div class="v" id="avgVal">--:--</div><div class="l">평균 페이스</div></div>
-  </div>
+    <!-- CHEER -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📣 응원 보이스</div>
+        <div class="toggle on" id="cheerToggle"></div>
+      </div>
+      <div class="slider-row">
+        <span style="font-size:12px;color:var(--sub);width:36px;">빈도</span>
+        <input type="range" id="cheerFreq" min="15" max="90" value="40" step="5">
+        <div class="slider-val" id="cheerFreqVal">~40초</div>
+      </div>
+      <div class="sub-text mt4">거리 마일스톤(1km, 2km…)마다 자동 알림</div>
+    </div>
 
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title">🔊 음성 코치</div>
-      <div class="switch on" id="voiceSwitch"></div>
-    </div>
-    <div class="pill-row">
-      <div class="pill active" data-voice="female">여성 목소리</div>
-      <div class="pill" data-voice="male">남성 목소리</div>
-    </div>
-    <div class="cmd-hint" style="margin-top:10px;">달리는 중 말로 명령하세요: <code>빨리</code> · <code>느리게</code> · <code>5분 페이스</code> · <code>케이던스 180</code></div>
-    <div class="voice-log" id="cmdLog"></div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title">🥁 메트로놈 (케이던스)</div>
-      <div class="switch" id="metroSwitch"></div>
-    </div>
-    <div class="cadence-row">
-      <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
-      <div class="cadence-val" id="cadenceVal">172 spm</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title">📣 응원 보이스</div>
-      <div class="switch" id="cheerSwitch"></div>
-    </div>
-    <div class="footnote" style="margin-top:-2px; margin-bottom:10px;">달리는 동안 무작위 응원 멘트를 들려줘요 (박자와 무관)</div>
-    <div class="cadence-row">
-      <span style="font-size:12px; color:var(--sub); width:54px;">빈도</span>
-      <input type="range" id="cheerFreqSlider" min="15" max="60" value="30" step="5">
-      <div class="cadence-val" id="cheerFreqVal">~30초</div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-head">
-      <div class="card-title">🎙️ 음성 명령 인식</div>
-      <div class="switch" id="listenSwitch"></div>
-    </div>
-    <div class="footnote" id="recogStatus">꺼짐 — 화면을 켜둔 상태에서만 동작합니다</div>
-  </div>
+  </div><!-- .setup-body -->
 
   <button class="start-btn" id="startBtn">러닝 시작</button>
-  <div class="gps-warning" id="gpsWarn"></div>
+  <div style="height:12px;"></div>
+</div><!-- #screen-setup -->
 
-</div>
 
+<!-- ══════════════════════════════
+     RUNNING SCREEN
+══════════════════════════════ -->
+<div class="screen" id="screen-run">
+  <div class="topbar">
+    <div class="brand">PACE ONE</div>
+    <div class="gps-badge">
+      <div class="gps-dot" id="runGpsDot"></div>
+      <span id="runGpsLabel">GPS 연결됨</span>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar" id="statusBar">
+    <span class="s-icon">⏱</span>
+    <span class="s-text" id="statusText">측정 중…</span>
+  </div>
+
+  <div class="run-body">
+
+    <!-- CURRENT PACE -->
+    <div class="pace-block">
+      <div class="curr-pace-label">현재 페이스</div>
+      <div class="curr-pace-num idle" id="currPace">--:--</div>
+      <div class="pace-unit-run">분 / km</div>
+      <div class="target-row-run">
+        목표&nbsp;<b id="runTarget">--:--</b>&nbsp;/km
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics">
+      <div class="metric">
+        <div class="metric-v" id="mDist">0.00</div>
+        <div class="metric-l">거리 km</div>
+      </div>
+      <div class="metric">
+        <div class="metric-v" id="mTime">00:00</div>
+        <div class="metric-l">경과 시간</div>
+      </div>
+      <div class="metric">
+        <div class="metric-v" id="mAvg">--:--</div>
+        <div class="metric-l">평균 페이스</div>
+      </div>
+    </div>
+
+    <!-- CADENCE -->
+    <div class="cadence-row-run">
+      <div class="cadence-info">
+        <div class="cadence-val-run" id="runCadence">172</div>
+        <div class="cadence-sub">케이던스 spm</div>
+      </div>
+      <button class="metro-btn" id="runMetroBtn">메트로놈 꺼짐</button>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="run-controls">
+      <button class="ctrl-btn pause" id="pauseBtn">일시정지</button>
+      <button class="ctrl-btn stop"  id="stopBtn">러닝 종료</button>
+    </div>
+
+  </div><!-- .run-body -->
+
+  <!-- GPS LOST OVERLAY -->
+  <div class="gps-overlay" id="gpsOverlay">
+    <div class="gps-overlay-icon">📡</div>
+    <div class="gps-overlay-title">GPS 신호 불안정</div>
+    <div class="gps-overlay-sub">신호를 찾는 중입니다.<br>타이머와 메트로놈은 계속 동작합니다.<br>코칭은 신호 회복 후 재개됩니다.</div>
+  </div>
+</div><!-- #screen-run -->
+
+
+<!-- ══════════════════════════════
+     RESULTS SCREEN
+══════════════════════════════ -->
+<div class="screen" id="screen-result">
+  <div class="topbar">
+    <div class="brand">PACE ONE</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--sub);">결과</div>
+  </div>
+  <div class="result-body">
+
+    <div class="result-hero">
+      <div class="result-hero-icon" id="resIcon">🏃</div>
+      <div class="result-hero-title" id="resTitle">러닝 완료!</div>
+      <div class="result-hero-sub" id="resSub">수고하셨습니다</div>
+    </div>
+
+    <div class="result-grid">
+      <div class="result-stat">
+        <div class="result-stat-v" id="resDist">0.00</div>
+        <div class="result-stat-l">거리 (km)</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-v" id="resTime">00:00</div>
+        <div class="result-stat-l">총 시간</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-v" id="resAvgPace">--:--</div>
+        <div class="result-stat-l">평균 페이스</div>
+      </div>
+      <div class="result-stat">
+        <div class="result-stat-v" id="resPaceKeep">--%</div>
+        <div class="result-stat-l">목표 달성률</div>
+      </div>
+    </div>
+
+    <div class="coaching-summary">
+      <h3>코칭 기록</h3>
+      <div id="coachLog"></div>
+    </div>
+
+    <button class="again-btn" id="againBtn">다시 달리기</button>
+  </div>
+</div><!-- #screen-result -->
+
+
+<!-- ══════════════════════════════
+     APP LOGIC
+══════════════════════════════ -->
 <script>
-(function(){
-  const $ = id => document.getElementById(id);
-  const RING_LEN = 741.5;
+(function () {
+'use strict';
 
-  // ---------- State ----------
-  let targetPaceSec = 330; // 5:30 /km in seconds
-  let running = false;
-  let watchId = null;
-  let startTime = null, elapsedTimer = null;
-  let totalDistanceM = 0;
-  let lastPos = null;
-  let currentSpeedMps = 0; // smoothed
-  let speedSamples = [];
-  let voiceOn = true;
-  let voiceGender = 'female';
-  let metroOn = false;
-  let cadence = 172;
-  let cheerOn = false;
-  let cheerIntervalSec = 30; // base seconds between cheers (randomized +/-)
-  let cheerTimer = null;
-  let lastCheerPhrase = '';
-  let lastMilestoneKm = 0;
-  const cheerPhrases = [
-    '좋아요 그 페이스 그대로!','잘 하고 있어요!','조금만 더!','힘내요!',
-    '거의 다 왔어요!','자세 좋아요, 어깨 힘 빼고!','호흡 편안하게!','파이팅!',
-    '잘 달리고 있어요!','지금 컨디션 좋아요!','한 걸음씩 천천히!','오늘 정말 잘하고 있어요!',
-    '리듬 잘 타고 있어요!','시선은 정면으로!'
-  ];
-  const milestonePhrases = [
-    '킬로미터 통과! 좋은 페이스예요','킬로미터 찍었어요! 계속 가요','킬로미터! 페이스 안정적이에요'
-  ];
-  let listening = false;
-  let recognition = null;
-  let audioCtx = null, metroTimer = null;
-  let lastCoachTime = 0;
-  let availableVoices = [];
-
-  // ---------- Helpers ----------
-  function fmtPace(sec){
-    if(!isFinite(sec) || sec<=0 || sec>900) return '--:--';
-    const m = Math.floor(sec/60), s = Math.round(sec%60);
-    return m+':'+String(s).padStart(2,'0');
+/* ───────────────────────────
+   CONSTANTS / CONFIG
+─────────────────────────── */
+const CFG = {
+  GPS_ACCURACY_MAX:    40,    // m — 이 이상이면 불신
+  GPS_SPEED_MAX:       10,    // m/s — 36km/h 이상 점프 제거
+  GPS_DIST_JUMP_MAX:   60,    // m — 한 틱에 이보다 크면 제거
+  SPEED_SAMPLES:        8,    // 이동평균 창 크기
+  MIN_SPEED_COACH:    0.5,    // m/s 미만이면 코치 침묵
+  GPS_LOST_TIMEOUT:  8000,    // ms — 이 시간 GPS 없으면 불안정 표시
+  COACH_CONFIRM_MS:  6000,    // 상태 지속 후 코칭
+  COACH_COOLDOWN_MS: 25000,   // 같은 방향 코칭 쿨다운
+  CHEER_MIN_RUN_MS:  60000,   // 러닝 최소 1분 후 응원 시작
+  PACE_ZONE: {
+    ON_PACE:  5,   // ±5초/km 이내
+    SLIGHTLY: 10,  // 5~10초/km
+    // 10초+ = 많이 벗어남
   }
-  function fmtTime(sec){
-    const m = Math.floor(sec/60), s = Math.floor(sec%60);
-    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+};
+
+/* ───────────────────────────
+   STATE
+─────────────────────────── */
+let targetPaceSec = 330;   // 5:30
+let voiceOn = true;
+let voiceGender = 'female';  // 'female' | 'male' | 'min'
+let metroOn = false;
+let cadence = 172;
+let metroVolPct = 50;
+let cheerOn = true;
+let cheerIntervalSec = 40;
+
+let running = false;
+let paused = false;
+let startTime = null;
+let pausedMs = 0;
+let pauseStart = null;
+let elapsedTimer = null;
+let watchId = null;
+let lastPos = null;
+let totalDistanceM = 0;
+let speedSamples = [];
+let currentSpeedMps = 0;
+let lastGpsTime = null;
+let gpsLost = false;
+
+// Coaching state machine
+let coachState = 'idle';        // 'on_pace' | 'slightly_slow' | 'much_slow' | 'slightly_fast' | 'much_fast' | 'idle'
+let coachStateStart = 0;        // when current state started
+let lastCoachTime = { slow: 0, fast: 0, ok: 0 };
+let coachLog = [];              // [{time, msg}]
+let onPaceTicks = 0;
+
+// Cheer
+let cheerTimer = null;
+let lastCheerPhrase = '';
+let lastMilestoneKm = 0;
+
+// Voice queue
+let voiceQueue = [];
+let isSpeaking = false;
+
+// Metronome
+let audioCtx = null;
+let metroTimer = null;
+let metroGain = null;
+
+// Recognition
+let recognition = null;
+let listening = false;
+
+// Stats for results
+let goodPaceTicks = 0, totalPaceTicks = 0;
+
+/* ───────────────────────────
+   DOM refs
+─────────────────────────── */
+const $ = id => document.getElementById(id);
+
+/* ───────────────────────────
+   FORMATTING
+─────────────────────────── */
+function fmtPace(sec) {
+  if (!isFinite(sec) || sec <= 0 || sec > 900) return '--:--';
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+function fmtTime(totalSec) {
+  const s = Math.floor(totalSec);
+  const m = Math.floor(s / 60), rem = s % 60;
+  return String(m).padStart(2, '0') + ':' + String(rem).padStart(2, '0');
+}
+function elapsedSec() {
+  if (!startTime) return 0;
+  return (Date.now() - startTime - pausedMs) / 1000;
+}
+
+/* ───────────────────────────
+   SETUP UI
+─────────────────────────── */
+function updateSetupPace() {
+  $('setupPace').textContent = fmtPace(targetPaceSec);
+}
+$('paceUp').onclick   = () => { targetPaceSec = Math.max(180, targetPaceSec - 10); updateSetupPace(); };
+$('paceDown').onclick = () => { targetPaceSec = Math.min(720, targetPaceSec + 10); updateSetupPace(); };
+
+function makeToggle(id, initial, cb) {
+  const el = $(id);
+  if (initial) el.classList.add('on');
+  el.onclick = () => {
+    const on = el.classList.toggle('on');
+    cb(on);
+  };
+}
+makeToggle('voiceToggle', true,  on => { voiceOn = on; if (!on) speechSynthesis.cancel(); });
+makeToggle('metroToggle', false, on => { metroOn = on; on ? startMetronome() : stopMetronome(); });
+makeToggle('cheerToggle', true,  on => { cheerOn = on; });
+makeToggle('listenToggle', false, on => {
+  if (on) {
+    if (!recognition) setupRecognition();
+    if (recognition) { listening = true; try { recognition.start(); } catch(e) {} }
+  } else {
+    listening = false;
+    if (recognition) recognition.stop();
+    $('recogStatus').textContent = '꺼짐';
+  }
+});
+
+document.querySelectorAll('.pill[data-voice]').forEach(p => {
+  p.onclick = () => {
+    document.querySelectorAll('.pill[data-voice]').forEach(x => x.classList.remove('active'));
+    p.classList.add('active');
+    voiceGender = p.dataset.voice;
+    enqueue('voice_test', voiceGender === 'min' ? '최소 안내 모드입니다' : `${voiceGender === 'male' ? '남성' : '여성'} 목소리입니다`, 1);
+  };
+});
+
+$('cadenceSlider').oninput = e => {
+  cadence = +e.target.value;
+  $('cadenceVal').textContent = cadence + ' spm';
+  $('runCadence').textContent = cadence;
+  if (metroOn) startMetronome();
+};
+$('metroVol').oninput = e => {
+  metroVolPct = +e.target.value;
+  $('metroVolVal').textContent = metroVolPct + '%';
+  if (metroGain) metroGain.gain.value = metroVolPct / 100 * 0.35;
+};
+$('cheerFreq').oninput = e => {
+  cheerIntervalSec = +e.target.value;
+  $('cheerFreqVal').textContent = '~' + cheerIntervalSec + '초';
+};
+
+/* ───────────────────────────
+   VOICE — QUEUE
+─────────────────────────── */
+/*
+  Priority levels (lower = more important):
+  0 = critical (GPS lost/recovered, start/stop)
+  1 = coaching
+  2 = milestone / cheer
+*/
+function enqueue(id, text, priority = 1) {
+  if (!voiceOn) return;
+  if (voiceGender === 'min' && priority >= 2) return;  // 최소 모드: 응원 생략
+  // Remove same-id duplicate
+  voiceQueue = voiceQueue.filter(q => q.id !== id);
+  voiceQueue.push({ id, text, priority });
+  voiceQueue.sort((a, b) => a.priority - b.priority);
+  drainQueue();
+}
+function drainQueue() {
+  if (isSpeaking || voiceQueue.length === 0) return;
+  const item = voiceQueue.shift();
+  speakNow(item.text);
+}
+function speakNow(text) {
+  if (!voiceOn) return;
+  isSpeaking = true;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR';
+    u.rate = voiceGender === 'male' ? 0.95 : 1.0;
+    u.pitch = voiceGender === 'male' ? 0.82 : 1.05;
+    const v = pickVoice();
+    if (v) u.voice = v;
+    u.onend = () => { isSpeaking = false; drainQueue(); };
+    u.onerror = () => { isSpeaking = false; drainQueue(); };
+    speechSynthesis.speak(u);
+    // Safety timeout
+    setTimeout(() => { if (isSpeaking) { isSpeaking = false; drainQueue(); } }, 6000);
+  } catch (e) {
+    isSpeaking = false;
+  }
+}
+function pickVoice() {
+  const all = speechSynthesis.getVoices();
+  const ko = all.filter(v => v.lang && v.lang.toLowerCase().startsWith('ko'));
+  const pool = ko.length ? ko : all;
+  if (voiceGender === 'male') {
+    const h = ['male','man','Daniel','David','Alex','민준'];
+    return pool.find(v => h.some(k => v.name.includes(k))) || pool[Math.min(1, pool.length - 1)];
+  }
+  const h = ['female','woman','Yuna','Sora','유나','지민','수정','Samantha'];
+  return pool.find(v => h.some(k => v.name.includes(k))) || pool[0] || null;
+}
+if ('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+
+/* ───────────────────────────
+   GPS
+─────────────────────────── */
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000, r = Math.PI / 180;
+  const dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function handlePosition(pos) {
+  lastGpsTime = Date.now();
+  const { latitude, longitude, speed, accuracy } = pos.coords;
+  const t = pos.timestamp;
+
+  setGpsIndicator('ok', 'GPS 연결됨');
+
+  if (gpsLost) {
+    gpsLost = false;
+    $('gpsOverlay').classList.remove('show');
+    if (running && !paused) enqueue('gps_recover', 'GPS 신호 회복됐어요. 코칭을 재개합니다', 0);
   }
 
-  function updateTargetLabel(){ $('targetLabel').textContent = fmtPace(targetPaceSec); }
-  updateTargetLabel();
+  if (!running || paused) { lastPos = { lat: latitude, lon: longitude, t }; return; }
 
-  $('tgtUp').onclick = ()=>{ targetPaceSec = Math.max(180, targetPaceSec-10); updateTargetLabel(); };
-  $('tgtDown').onclick = ()=>{ targetPaceSec = Math.min(720, targetPaceSec+10); updateTargetLabel(); };
-
-  // ---------- Voices ----------
-  function loadVoices(){
-    availableVoices = speechSynthesis.getVoices();
-  }
-  loadVoices();
-  if('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
-
-  function pickVoice(gender){
-    const koVoices = availableVoices.filter(v=>v.lang && v.lang.toLowerCase().startsWith('ko'));
-    const pool = koVoices.length ? koVoices : availableVoices;
-    // heuristics by common name patterns
-    const maleHints = ['male','man','민준','준','형','Junior','Daniel','David','Alex'];
-    const femaleHints = ['female','woman','여','지민','수정','유나','Samantha','Yuna','Sora'];
-    let pick = pool.find(v => (gender==='male'?maleHints:femaleHints).some(h=>v.name.includes(h)));
-    if(!pick) pick = pool[gender==='male' ? Math.min(1,pool.length-1) : 0];
-    return pick || availableVoices[0];
+  // Filter accuracy
+  if (accuracy > CFG.GPS_ACCURACY_MAX) {
+    setGpsIndicator('warn', `GPS 정확도 낮음 (${Math.round(accuracy)}m)`);
+    lastPos = { lat: latitude, lon: longitude, t };
+    return;
   }
 
-  function speak(text){
-    if(!voiceOn) return;
-    try{
-      speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      const v = pickVoice(voiceGender);
-      if(v) u.voice = v;
-      u.lang = 'ko-KR';
-      u.rate = 1.0; u.pitch = voiceGender==='male' ? 0.85 : 1.05;
-      speechSynthesis.speak(u);
-    }catch(e){}
+  let instSpeed = (typeof speed === 'number' && speed >= 0 && speed < CFG.GPS_SPEED_MAX) ? speed : null;
+
+  if (lastPos) {
+    const dt = (t - lastPos.t) / 1000;
+    if (dt > 0.3 && dt < 10) {
+      const d = haversine(lastPos.lat, lastPos.lon, latitude, longitude);
+      if (d < CFG.GPS_DIST_JUMP_MAX) {
+        totalDistanceM += d;
+        if (instSpeed === null && dt > 0) instSpeed = d / dt;
+      }
+    }
   }
 
-  document.querySelectorAll('.pill[data-voice]').forEach(p=>{
-    p.onclick = ()=>{
-      document.querySelectorAll('.pill[data-voice]').forEach(x=>x.classList.remove('active'));
-      p.classList.add('active');
-      voiceGender = p.dataset.voice;
-      speak(voiceGender==='male' ? '남성 목소리로 변경했습니다' : '여성 목소리로 변경했습니다');
-    };
+  if (instSpeed !== null && instSpeed < CFG.GPS_SPEED_MAX) {
+    speedSamples.push(instSpeed);
+    if (speedSamples.length > CFG.SPEED_SAMPLES) speedSamples.shift();
+    currentSpeedMps = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
+  }
+
+  lastPos = { lat: latitude, lon: longitude, t };
+  updateRunUI();
+  coachingTick();
+}
+
+function handleGpsError(err) {
+  setGpsIndicator('bad', 'GPS 오류');
+}
+
+function setGpsIndicator(state, label) {
+  ['gpsDot','runGpsDot'].forEach(id => {
+    const d = $(id); if (!d) return;
+    d.className = 'gps-dot' + (state === 'ok' ? ' ok' : state === 'warn' ? ' warn' : ' bad');
   });
+  ['gpsLabel','runGpsLabel'].forEach(id => {
+    const el = $(id); if (el) el.textContent = label;
+  });
+}
 
-  $('voiceSwitch').onclick = ()=>{
-    voiceOn = !voiceOn;
-    $('voiceSwitch').classList.toggle('on', voiceOn);
-    if(!voiceOn) speechSynthesis.cancel();
-  };
-
-  // ---------- Coaching logic ----------
-  function coachTick(){
-    if(!running) return;
-    const now = Date.now();
-    if(now - lastCoachTime < 20000) return; // every ~20s
-    lastCoachTime = now;
-    if(currentSpeedMps <= 0.3){
-      speak('속도가 거의 없어요. 페이스를 확인해주세요');
-      return;
-    }
-    const curPaceSec = 1000/currentSpeedMps;
-    const diff = curPaceSec - targetPaceSec; // positive = slower than target
-    if(Math.abs(diff) <= 8){
-      speak('좋아요, 목표 페이스를 잘 유지하고 있어요');
-    } else if(diff > 8){
-      speak('조금 느려요. 속도를 살짝 올려보세요');
-    } else {
-      speak('너무 빨라요. 약간 늦춰주세요');
-    }
-  }
-
-  // ---------- GPS ----------
-  function handlePosition(pos){
-    $('gpsDot').classList.add('live');
-    $('gpsLabel').textContent = 'GPS 연결됨';
-    $('gpsWarn').textContent = '';
-
-    const {latitude, longitude, speed, accuracy} = pos.coords;
-    const t = pos.timestamp;
-
-    let instSpeed = (typeof speed === 'number' && speed >= 0) ? speed : null;
-
-    if(lastPos){
-      const dt = (t - lastPos.t)/1000;
-      if(dt > 0.5){
-        const d = haversine(lastPos.lat, lastPos.lon, latitude, longitude);
-        if(accuracy < 30 && d < 50){ // filter GPS jumps
-          totalDistanceM += d;
-          if(instSpeed === null) instSpeed = d/dt;
-        }
+// GPS lost watchdog
+function startGpsWatchdog() {
+  setInterval(() => {
+    if (!running || paused) return;
+    if (lastGpsTime && Date.now() - lastGpsTime > CFG.GPS_LOST_TIMEOUT) {
+      if (!gpsLost) {
+        gpsLost = true;
+        setGpsIndicator('bad', 'GPS 신호 없음');
+        $('gpsOverlay').classList.add('show');
+        enqueue('gps_lost', 'GPS 신호가 불안정합니다. 코칭을 잠시 중단합니다', 0);
       }
     }
-    if(instSpeed !== null){
-      speedSamples.push(instSpeed);
-      if(speedSamples.length > 5) speedSamples.shift();
-      currentSpeedMps = speedSamples.reduce((a,b)=>a+b,0)/speedSamples.length;
-    }
-    lastPos = {lat:latitude, lon:longitude, t};
-    renderLive();
-    coachTick();
+  }, 2000);
+}
+
+/* ───────────────────────────
+   COACHING ENGINE
+─────────────────────────── */
+const COACH_PHRASES = {
+  on_pace:       ['좋아요. 지금 페이스 아주 좋아요.', '좋습니다. 이 리듬 그대로 가볼게요.'],
+  slightly_slow: ['조금만 속도를 올려볼게요.', '좋아요. 조금 더 가볍게 달려봐요.'],
+  much_slow:     ['페이스가 떨어졌어요. 조금 더 달려봐요.'],
+  slightly_fast: ['좋아요. 힘을 조금 아껴도 돼요.'],
+  much_fast:     ['조금 천천히 가볼까요?'],
+};
+
+function getCoachZone(diff) {
+  // diff = curPace - targetPace (양수 = 느림)
+  if (Math.abs(diff) <= CFG.PACE_ZONE.ON_PACE)  return 'on_pace';
+  if (diff >  CFG.PACE_ZONE.SLIGHTLY)             return 'much_slow';
+  if (diff >  CFG.PACE_ZONE.ON_PACE)              return 'slightly_slow';
+  if (diff < -CFG.PACE_ZONE.SLIGHTLY)             return 'much_fast';
+  return 'slightly_fast';
+}
+
+function coachingTick() {
+  if (!running || paused || gpsLost) return;
+  if (currentSpeedMps < CFG.MIN_SPEED_COACH) return;
+
+  const curPaceSec = 1000 / currentSpeedMps;
+  const diff = curPaceSec - targetPaceSec;
+  const zone = getCoachZone(diff);
+  const now = Date.now();
+
+  totalPaceTicks++;
+  if (zone === 'on_pace') goodPaceTicks++;
+
+  // State transition
+  if (zone !== coachState) {
+    coachState = zone;
+    coachStateStart = now;
+    return;  // 상태 바뀌면 확인 대기
   }
 
-  function handleGpsError(err){
-    $('gpsDot').classList.remove('live');
-    $('gpsLabel').textContent = 'GPS 오류';
-    $('gpsWarn').textContent = 'GPS 권한을 확인해주세요: ' + err.message;
+  // 상태 지속 확인
+  if (now - coachStateStart < CFG.COACH_CONFIRM_MS) return;
+
+  // 쿨다운 확인
+  const direction = zone === 'on_pace' ? 'ok' : zone.includes('slow') ? 'slow' : 'fast';
+  if (now - lastCoachTime[direction] < CFG.COACH_COOLDOWN_MS) return;
+
+  // on_pace는 처음 한 번만, 이후 생략
+  if (zone === 'on_pace') {
+    if (onPaceTicks > 0) return;
+    onPaceTicks++;
+  } else {
+    onPaceTicks = 0;
   }
 
-  function haversine(lat1,lon1,lat2,lon2){
-    const R = 6371000;
-    const toRad = d=>d*Math.PI/180;
-    const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
-    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
-    return R * 2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  lastCoachTime[direction] = now;
+  const phrases = COACH_PHRASES[zone];
+  const msg = phrases[Math.floor(Math.random() * phrases.length)];
+  enqueue('coach_' + zone, msg, 1);
+  coachLog.push({ time: elapsedSec(), msg });
+}
+
+/* ───────────────────────────
+   RUN UI UPDATE
+─────────────────────────── */
+function updateRunUI() {
+  const curPaceSec = currentSpeedMps > 0.3 ? 1000 / currentSpeedMps : NaN;
+  const diff = isFinite(curPaceSec) ? curPaceSec - targetPaceSec : 0;
+  const zone = isFinite(curPaceSec) ? getCoachZone(diff) : 'idle';
+
+  // Pace number color
+  const pEl = $('currPace');
+  pEl.textContent = fmtPace(curPaceSec);
+  pEl.className = 'curr-pace-num ' + (isFinite(curPaceSec) ? zone : 'idle');
+
+  // Status bar
+  const sb = $('statusBar');
+  const stText = $('statusText');
+  if (!isFinite(curPaceSec)) {
+    sb.className = 'status-bar';
+    stText.textContent = '측정 중…';
+  } else if (zone === 'on_pace') {
+    sb.className = 'status-bar ok';
+    stText.textContent = '✓ 목표 페이스 유지 중';
+  } else if (zone === 'slightly_slow') {
+    sb.className = 'status-bar slow';
+    stText.textContent = '▼ 조금 느림 — 속도 올려봐요';
+  } else if (zone === 'much_slow') {
+    sb.className = 'status-bar slow';
+    stText.textContent = '▼▼ 많이 느림 — 페이스 회복';
+  } else if (zone === 'slightly_fast') {
+    sb.className = 'status-bar fast';
+    stText.textContent = '▲ 조금 빠름 — 힘 아껴봐요';
+  } else {
+    sb.className = 'status-bar fast';
+    stText.textContent = '▲▲ 많이 빠름 — 페이스 조절';
   }
 
-  function renderLive(){
-    const curPaceSec = currentSpeedMps > 0.2 ? 1000/currentSpeedMps : NaN;
-    $('paceValue').textContent = fmtPace(curPaceSec);
-    $('distVal').textContent = (totalDistanceM/1000).toFixed(2);
+  // Metrics
+  $('mDist').textContent = (totalDistanceM / 1000).toFixed(2);
+  const elapsed = elapsedSec();
+  $('mTime').textContent = fmtTime(elapsed);
+  const avgPace = totalDistanceM > 0 ? elapsed / (totalDistanceM / 1000) : NaN;
+  $('mAvg').textContent = fmtPace(avgPace);
 
-    if(startTime){
-      const elapsed = (Date.now()-startTime)/1000;
-      $('timeVal').textContent = fmtTime(elapsed);
-      const avgPace = totalDistanceM > 0 ? elapsed / (totalDistanceM/1000) : NaN;
-      $('avgVal').textContent = fmtPace(avgPace);
-    }
+  // Milestone cheer
+  checkMilestone();
+}
 
-    // ring + delta tag
-    const tag = $('deltaTag');
-    if(isFinite(curPaceSec)){
-      const diff = curPaceSec - targetPaceSec;
-      let frac = Math.max(0, Math.min(1, 1 - (curPaceSec / (targetPaceSec*1.8))));
-      $('ring').setAttribute('stroke-dashoffset', RING_LEN*(1-frac));
-      if(Math.abs(diff)<=8){
-        tag.textContent = '목표 페이스 유지 중'; tag.className='delta ok';
-        $('ring').style.stroke = 'var(--track)';
-      } else if(diff>8){
-        tag.textContent = `목표보다 ${fmtPace(diff)} 느림`; tag.className='delta slow';
-        $('ring').style.stroke = 'var(--warn)';
-      } else {
-        tag.textContent = `목표보다 ${fmtPace(-diff)} 빠름`; tag.className='delta fast';
-        $('ring').style.stroke = 'var(--fast)';
-      }
-    } else {
-      tag.textContent = '측정 중...'; tag.className='delta ok';
-    }
-  }
-
-  // ---------- Metronome ----------
-  function ensureAudioCtx(){
-    if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  }
-  function clickSound(){
-    ensureAudioCtx();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.frequency.value = 1100;
-    gain.gain.setValueAtTime(0.18, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+0.06);
-    osc.connect(gain).connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime+0.07);
-  }
-  function startMetronome(){
-    ensureAudioCtx();
-    stopMetronome();
-    const interval = 60000/cadence;
-    metroTimer = setInterval(clickSound, interval);
-  }
-  function stopMetronome(){
-    if(metroTimer){ clearInterval(metroTimer); metroTimer = null; }
-  }
-
-  $('metroSwitch').onclick = ()=>{
-    metroOn = !metroOn;
-    $('metroSwitch').classList.toggle('on', metroOn);
-    if(metroOn) startMetronome(); else stopMetronome();
-  };
-  $('cadenceSlider').oninput = (e)=>{
-    cadence = parseInt(e.target.value,10);
-    $('cadenceVal').textContent = cadence+' spm';
-    if(metroOn) startMetronome();
-    if(cheerOn) startCheer();
-  };
-
-  // ---------- Cheer voice (하나둘) ----------
-  // ---------- Cheer voice (random encouragement) ----------
-  function cheerTick(){
+/* ───────────────────────────
+   CHEER
+─────────────────────────── */
+const CHEER_PHRASES = [
+  '지금까지 아주 잘하고 있어요.',
+  '좋은 페이스예요. 계속 가요.',
+  '자세 좋아요. 어깨 힘 빼고.',
+  '호흡 편안하게. 잘하고 있어요.',
+  '리듬 유지하세요. 좋아요.',
+  '오늘 정말 잘 달리고 있어요.',
+  '시선 정면, 어깨 내리고.',
+  '마지막까지 이 페이스 유지해요.',
+];
+function scheduleCheer() {
+  clearTimeout(cheerTimer);
+  if (!cheerOn) return;
+  const delay = cheerIntervalSec * 1000 * (0.7 + Math.random() * 0.6);
+  cheerTimer = setTimeout(() => {
+    if (!running || paused || !cheerOn) return;
+    if (Date.now() - startTime < CFG.CHEER_MIN_RUN_MS) { scheduleCheer(); return; }
     let phrase;
-    do {
-      phrase = cheerPhrases[Math.floor(Math.random()*cheerPhrases.length)];
-    } while(phrase === lastCheerPhrase && cheerPhrases.length > 1);
+    do { phrase = CHEER_PHRASES[Math.floor(Math.random() * CHEER_PHRASES.length)]; }
+    while (phrase === lastCheerPhrase && CHEER_PHRASES.length > 1);
     lastCheerPhrase = phrase;
-    speakFast(phrase);
-    scheduleNextCheer();
+    enqueue('cheer', phrase, 2);
+    scheduleCheer();
+  }, delay);
+}
+function checkMilestone() {
+  if (!cheerOn || !running || paused) return;
+  const km = Math.floor(totalDistanceM / 1000);
+  if (km > lastMilestoneKm && km > 0) {
+    lastMilestoneKm = km;
+    const msgs = [
+      `${km}킬로미터 통과했어요. 좋은 페이스예요.`,
+      `${km}킬로미터! 계속 이 리듬 유지해요.`,
+    ];
+    enqueue('milestone_' + km, msgs[km % 2], 2);
   }
-  function speakFast(text){
-    if(!voiceOn) return;
-    try{
-      const u = new SpeechSynthesisUtterance(text);
-      const v = pickVoice(voiceGender);
-      if(v) u.voice = v;
-      u.lang = 'ko-KR';
-      u.rate = 1.15; u.pitch = voiceGender==='male' ? 0.85 : 1.1; u.volume = 0.95;
-      speechSynthesis.speak(u);
-    }catch(e){}
+}
+
+/* ───────────────────────────
+   METRONOME
+─────────────────────────── */
+function ensureAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    metroGain = audioCtx.createGain();
+    metroGain.gain.value = metroVolPct / 100 * 0.35;
+    metroGain.connect(audioCtx.destination);
   }
-  function scheduleNextCheer(){
-    clearTimeout(cheerTimer);
-    const jitter = cheerIntervalSec * (0.7 + Math.random()*0.6); // +-30% randomness
-    cheerTimer = setTimeout(cheerTick, jitter*1000);
-  }
-  function startCheer(){
-    stopCheer();
-    scheduleNextCheer();
-  }
-  function stopCheer(){
-    if(cheerTimer){ clearTimeout(cheerTimer); cheerTimer = null; }
-  }
-  function checkMilestone(){
-    if(!cheerOn || !running) return;
-    const km = Math.floor(totalDistanceM/1000);
-    if(km > lastMilestoneKm && km > 0){
-      lastMilestoneKm = km;
-      const mp = milestonePhrases[Math.floor(Math.random()*milestonePhrases.length)];
-      speakFast(km + ' ' + mp);
-    }
-  }
-  $('cheerSwitch').onclick = ()=>{
-    cheerOn = !cheerOn;
-    $('cheerSwitch').classList.toggle('on', cheerOn);
-    if(cheerOn){ startCheer(); speakFast('응원 보이스 켰어요'); }
-    else stopCheer();
+}
+function clickTick() {
+  if (!audioCtx || !metroGain) return;
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.frequency.value = 1050;
+  g.gain.setValueAtTime(metroGain.gain.value, audioCtx.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.05);
+  osc.connect(g).connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+}
+function startMetronome() {
+  ensureAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  stopMetronome();
+  const interval = 60000 / cadence;
+  metroTimer = setInterval(clickTick, interval);
+}
+function stopMetronome() {
+  if (metroTimer) { clearInterval(metroTimer); metroTimer = null; }
+}
+
+$('runMetroBtn').onclick = () => {
+  metroOn = !metroOn;
+  $('runMetroBtn').className = 'metro-btn' + (metroOn ? ' on' : '');
+  $('runMetroBtn').textContent = metroOn ? '메트로놈 켜짐' : '메트로놈 꺼짐';
+  $('metroToggle').classList.toggle('on', metroOn);
+  metroOn ? startMetronome() : stopMetronome();
+};
+
+/* ───────────────────────────
+   VOICE COMMAND
+─────────────────────────── */
+function setupRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { $('recogStatus').textContent = '이 브라우저는 음성 인식을 지원하지 않습니다'; return; }
+  recognition = new SR();
+  recognition.lang = 'ko-KR';
+  recognition.continuous = true;
+  recognition.interimResults = false;
+  recognition.onresult = e => {
+    const text = e.results[e.results.length - 1][0].transcript.trim();
+    $('cmdLog').innerHTML = '들음: <b>"' + text + '"</b>';
+    handleCmd(text);
   };
-  $('cheerFreqSlider').oninput = (e)=>{
-    cheerEvery = parseInt(e.target.value,10);
-    $('cheerFreqVal').textContent = cheerEvery+'박마다';
-  };
+  recognition.onerror = e => { $('recogStatus').textContent = '인식 오류: ' + e.error; };
+  recognition.onend = () => { if (listening) { try { recognition.start(); } catch(e){} } };
+}
 
-  // ---------- Voice command recognition ----------
-  function setupRecognition(){
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR){
-      $('recogStatus').textContent = '이 브라우저는 음성 인식을 지원하지 않습니다';
-      $('listenSwitch').style.opacity = 0.4;
-      $('listenSwitch').onclick = null;
-      return;
+function handleCmd(text) {
+  if (/빨리|더\s*빠르게/.test(text)) {
+    targetPaceSec = Math.max(180, targetPaceSec - 15);
+    updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
+    enqueue('cmd', '목표 페이스를 ' + fmtPace(targetPaceSec) + '로 올렸어요', 0);
+  } else if (/느리게|천천히/.test(text)) {
+    targetPaceSec = Math.min(720, targetPaceSec + 15);
+    updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
+    enqueue('cmd', '목표 페이스를 ' + fmtPace(targetPaceSec) + '로 낮췄어요', 0);
+  } else if (/케이던스/.test(text)) {
+    const m = text.match(/케이던스\D*(\d{2,3})/);
+    if (m) {
+      cadence = Math.max(140, Math.min(200, +m[1]));
+      $('cadenceSlider').value = cadence;
+      $('cadenceVal').textContent = cadence + ' spm';
+      $('runCadence').textContent = cadence;
+      if (metroOn) startMetronome();
+      enqueue('cmd', '케이던스 ' + cadence + '으로 설정했어요', 0);
     }
-    recognition = new SR();
-    recognition.lang = 'ko-KR';
-    recognition.continuous = true;
-    recognition.interimResults = false;
-
-    recognition.onresult = (e)=>{
-      const text = e.results[e.results.length-1][0].transcript.trim();
-      handleVoiceCommand(text);
-    };
-    recognition.onerror = (e)=>{
-      $('recogStatus').textContent = '인식 오류: '+e.error+' (다시 시도 중)';
-    };
-    recognition.onend = ()=>{
-      if(listening){ try{ recognition.start(); }catch(e){} } // auto-restart
-    };
-  }
-
-  function handleVoiceCommand(text){
-    $('cmdLog').innerHTML = '들음: <b>"'+text+'"</b>';
-    let matched = false;
-
-    if(/빨리|더\s*빠르게|스피드\s*업/.test(text)){
-      targetPaceSec = Math.max(180, targetPaceSec - 15);
-      updateTargetLabel();
-      speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 올렸어요');
-      matched = true;
-    } else if(/느리게|천천히|슬로우/.test(text)){
-      targetPaceSec = Math.min(720, targetPaceSec + 15);
-      updateTargetLabel();
-      speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 낮췄어요');
-      matched = true;
-    } else if(/케이던스/.test(text)){
-      const cm = text.match(/케이던스\D*(\d{2,3})/);
-      if(cm){
-        let val = parseInt(cm[1],10);
-        val = Math.max(140, Math.min(200, val));
-        cadence = val;
-        $('cadenceSlider').value = val;
-        $('cadenceVal').textContent = val+' spm';
-        if(metroOn) startMetronome();
-        if(cheerOn) startCheer();
-        speak('케이던스를 ' + val + '로 설정했어요');
-        matched = true;
-      }
+  } else {
+    const m = text.match(/(\d+)\s*분(?:\s*(\d+)\s*초)?/);
+    if (m) {
+      targetPaceSec = Math.min(720, Math.max(120, +m[1] * 60 + (+m[2] || 0)));
+      updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
+      enqueue('cmd', '목표 페이스 ' + fmtPace(targetPaceSec) + '로 변경했어요', 0);
     } else {
-      // "n분 [m초] 페이스" 형태 파싱
-      const m = text.match(/(\d+)\s*분(?:\s*(\d+)\s*초)?/);
-      if(m){
-        const min = parseInt(m[1],10);
-        const sec = m[2] ? parseInt(m[2],10) : 0;
-        targetPaceSec = Math.min(720, Math.max(120, min*60+sec));
-        updateTargetLabel();
-        speak('목표 페이스를 ' + fmtPace(targetPaceSec) + '로 설정했어요');
-        matched = true;
-      }
-    }
-    if(!matched){
       $('cmdLog').innerHTML += ' — 명령을 이해하지 못했어요';
     }
   }
+}
 
-  $('listenSwitch').onclick = ()=>{
-    if(!recognition) setupRecognition();
-    if(!recognition) return;
-    listening = !listening;
-    $('listenSwitch').classList.toggle('on', listening);
-    if(listening){
-      try{ recognition.start(); }catch(e){}
-      $('recogStatus').textContent = '켜짐 — "빨리", "느리게", "5분 페이스"라고 말해보세요';
-    } else {
-      recognition.stop();
-      $('recogStatus').textContent = '꺼짐';
-    }
-  };
+/* ───────────────────────────
+   START / PAUSE / STOP
+─────────────────────────── */
+$('startBtn').onclick = () => {
+  if (!navigator.geolocation) {
+    alert('이 기기에서 GPS를 사용할 수 없습니다');
+    return;
+  }
+  startRun();
+};
 
-  // ---------- Start / Stop ----------
-  $('startBtn').onclick = ()=>{
-    if(!running){
-      if(!navigator.geolocation){
-        $('gpsWarn').textContent = '이 기기에서 GPS를 사용할 수 없습니다';
-        return;
-      }
-      running = true;
-      startTime = Date.now();
-      totalDistanceM = 0; lastPos = null; speedSamples = []; lastCoachTime = 0;
-      $('startBtn').textContent = '러닝 종료';
-      $('startBtn').classList.add('running');
-      watchId = navigator.geolocation.watchPosition(handlePosition, handleGpsError, {
-        enableHighAccuracy:true, maximumAge:1000, timeout:10000
-      });
-      elapsedTimer = setInterval(renderLive, 1000);
-      speak('러닝을 시작합니다. 목표 페이스는 ' + fmtPace(targetPaceSec) + ' 입니다');
-      if(metroOn) startMetronome();
-      if(cheerOn) startCheer();
-    } else {
-      running = false;
-      $('startBtn').textContent = '러닝 시작';
-      $('startBtn').classList.remove('running');
-      if(watchId !== null) navigator.geolocation.clearWatch(watchId);
-      if(elapsedTimer) clearInterval(elapsedTimer);
-      stopMetronome();
-      stopCheer();
-      const dist = (totalDistanceM/1000).toFixed(2);
-      speak('러닝을 종료합니다. 총 거리 ' + dist + '킬로미터 수고하셨습니다');
-    }
-  };
+function startRun() {
+  running = true; paused = false;
+  startTime = Date.now(); pausedMs = 0;
+  totalDistanceM = 0; lastPos = null;
+  speedSamples = []; currentSpeedMps = 0;
+  coachState = 'idle'; coachStateStart = 0;
+  lastCoachTime = { slow: 0, fast: 0, ok: 0 };
+  onPaceTicks = 0; goodPaceTicks = 0; totalPaceTicks = 0;
+  coachLog = []; lastMilestoneKm = 0; lastGpsTime = null; gpsLost = false;
+
+  showScreen('run');
+  $('runTarget').textContent = fmtPace(targetPaceSec);
+
+  watchId = navigator.geolocation.watchPosition(handlePosition, handleGpsError, {
+    enableHighAccuracy: true, maximumAge: 1000, timeout: 15000
+  });
+  elapsedTimer = setInterval(updateRunUI, 1000);
+
+  startGpsWatchdog();
+  if (metroOn) startMetronome();
+  if (cheerOn) scheduleCheer();
+
+  setTimeout(() => {
+    enqueue('start', '러닝을 시작합니다. 목표 페이스 ' + fmtPace(targetPaceSec) + '입니다.', 0);
+  }, 800);
+}
+
+$('pauseBtn').onclick = () => {
+  if (!paused) {
+    paused = true; pauseStart = Date.now();
+    $('pauseBtn').textContent = '재개';
+    $('pauseBtn').style.color = 'var(--lime)';
+    stopMetronome(); clearTimeout(cheerTimer);
+    enqueue('pause', '일시정지했습니다', 0);
+  } else {
+    pausedMs += Date.now() - pauseStart; pauseStart = null;
+    paused = false;
+    $('pauseBtn').textContent = '일시정지';
+    $('pauseBtn').style.color = '';
+    if (metroOn) startMetronome();
+    if (cheerOn) scheduleCheer();
+    enqueue('resume', '재개합니다', 0);
+  }
+};
+
+$('stopBtn').onclick = () => {
+  if (!confirm('러닝을 종료할까요?')) return;
+  finishRun();
+};
+
+function finishRun() {
+  running = false; paused = false;
+  if (watchId !== null) { navigator.geolocation.clearWatch(watchId); watchId = null; }
+  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+  stopMetronome(); clearTimeout(cheerTimer);
+  speechSynthesis.cancel(); voiceQueue = []; isSpeaking = false;
+
+  const elapsed = elapsedSec();
+  const dist = totalDistanceM / 1000;
+  const avgPace = dist > 0 ? elapsed / dist : NaN;
+  const keepPct = totalPaceTicks > 0 ? Math.round(goodPaceTicks / totalPaceTicks * 100) : 0;
+
+  // Results
+  $('resDist').textContent = dist.toFixed(2);
+  $('resTime').textContent = fmtTime(elapsed);
+  $('resAvgPace').textContent = fmtPace(avgPace);
+  $('resPaceKeep').textContent = keepPct + '%';
+
+  $('resIcon').textContent = keepPct >= 70 ? '🏅' : dist >= 5 ? '🏃' : '👟';
+  $('resTitle').textContent = keepPct >= 80 ? '완벽한 러닝!' : keepPct >= 60 ? '잘 달렸어요!' : '러닝 완료!';
+  $('resSub').textContent = `총 ${dist.toFixed(2)}km · ${fmtTime(elapsed)} · 목표달성 ${keepPct}%`;
+
+  // Coach log
+  const logEl = $('coachLog');
+  if (coachLog.length === 0) {
+    logEl.innerHTML = '<div class="coach-log-item">코칭 없음 — 목표 페이스를 잘 유지했어요 👍</div>';
+  } else {
+    logEl.innerHTML = coachLog.slice(-8).map(l =>
+      `<div class="coach-log-item"><b>${fmtTime(l.time)}</b> — ${l.msg}</div>`
+    ).join('');
+  }
+
+  showScreen('result');
+  setTimeout(() => {
+    const sumMsg = `총 ${dist.toFixed(1)}킬로미터 달렸어요. 평균 페이스 ${fmtPace(avgPace)}. 수고하셨습니다.`;
+    speakNow(sumMsg);
+  }, 500);
+}
+
+$('againBtn').onclick = () => showScreen('setup');
+
+/* ───────────────────────────
+   SCREEN NAV
+─────────────────────────── */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('screen-' + name).classList.add('active');
+}
+
+/* ───────────────────────────
+   INIT
+─────────────────────────── */
+// Pre-warm GPS on setup
+navigator.geolocation && navigator.geolocation.getCurrentPosition(
+  pos => setGpsIndicator('ok', 'GPS 준비됨'),
+  () => setGpsIndicator('warn', 'GPS 권한 필요'),
+  { enableHighAccuracy: true, timeout: 10000 }
+);
 
 })();
 </script>
