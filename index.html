@@ -753,6 +753,99 @@ input[type=range]::-moz-range-thumb {
 .ctrl-btn, .again-btn { border-radius: 32px; }
 .again-btn { background: linear-gradient(180deg, #d4ff3a 0%, var(--lime) 45%, var(--lime2) 100%); font-size: 18px; }
 
+/* ════════════════════════════════
+   POCKET MODE (화면 켜둔 채 검은 화면 + 터치 잠금)
+════════════════════════════════ */
+.pocket-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%;
+  min-height: 60px;
+  border-radius: 32px;
+  border: 1.5px solid #5c7a00;
+  background: rgba(200,255,0,.07);
+  color: var(--lime);
+  font-size: 18px;
+  font-weight: 800;
+}
+.pocket-btn svg { width: 22px; height: 22px; }
+.pocket-btn:active { opacity: .7; }
+.awake-note {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text2);
+  text-align: center;
+  word-break: keep-all;
+}
+.awake-note.warn { color: #ffb38f; }
+
+.pocket {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(var(--safe-top) + 40px) 24px calc(var(--safe-bot) + 36px);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.pocket.show { display: flex; }
+.pocket-top { text-align: center; color: #5a5f66; font-size: 16px; font-weight: 600; }
+.pocket-mid { text-align: center; opacity: .62; }
+.pocket-label { font-size: 16px; font-weight: 700; color: #7a7f87; margin-bottom: 6px; }
+.pocket-pace {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-size: 96px; font-weight: 900; font-style: italic;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px; line-height: 1;
+  color: #8a8f98;
+}
+.pocket-pace.ok   { color: var(--lime); }
+.pocket-pace.slow { color: var(--orange); }
+.pocket-pace.fast { color: var(--blue); }
+.pocket-status { margin-top: 14px; font-size: 18px; font-weight: 700; color: #9aa0a8; }
+.pocket-stats {
+  margin-top: 18px;
+  display: flex; gap: 22px; justify-content: center;
+  font-size: 20px; font-weight: 800; color: #9aa0a8;
+  font-variant-numeric: tabular-nums;
+}
+.pocket-stats span small { display: block; font-size: 13px; font-weight: 600; color: #5a5f66; margin-top: 2px; }
+.pocket-unlock-wrap { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.pocket-unlock {
+  position: relative;
+  width: 84px; height: 84px;
+  border-radius: 50%;
+  border: 1.5px solid #2a2d33;
+  background: #0b0c0e;
+  color: #7a7f87;
+  display: flex; align-items: center; justify-content: center;
+}
+.pocket-unlock svg.lock { width: 30px; height: 30px; }
+.pocket-unlock svg.ring {
+  position: absolute; inset: -4px;
+  width: 92px; height: 92px;
+  transform: rotate(-90deg);
+}
+.pocket-unlock svg.ring circle {
+  stroke: var(--lime);
+  stroke-width: 3;
+  fill: none;
+  stroke-dasharray: 283;
+  stroke-dashoffset: 283;
+}
+.pocket-unlock.holding svg.ring circle {
+  transition: stroke-dashoffset 1.2s linear;
+  stroke-dashoffset: 0;
+}
+.pocket-unlock.holding { color: var(--lime); border-color: #5c7a00; }
+.pocket-hint { font-size: 15px; color: #5a5f66; font-weight: 600; transition: color .2s; }
+.pocket-hint.flash { color: #c9ccd1; }
+
 /* ─── LEGACY COMPAT ─── */
 .mt4 { margin-top: 4px; }
 .sub-text { font-size: 11.5px; color: var(--sub); line-height: 1.5; margin-top: 6px; }
@@ -1030,7 +1123,36 @@ input[type=range]::-moz-range-thumb {
       <button class="ctrl-btn stop"  id="stopBtn">러닝 종료</button>
     </div>
 
+    <!-- POCKET MODE ENTRY -->
+    <button class="pocket-btn" id="pocketBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      포켓 모드 (주머니에 넣기)
+    </button>
+    <div class="awake-note" id="awakeNote">전원 버튼을 누르면 안내가 멈춰요. 주머니에 넣을 땐 포켓 모드를 쓰세요.</div>
+
   </div><!-- .run-body -->
+
+  <!-- POCKET OVERLAY -->
+  <div class="pocket" id="pocket" aria-hidden="true">
+    <div class="pocket-top">PACE ONE · 안내 계속 중</div>
+    <div class="pocket-mid">
+      <div class="pocket-label">현재 페이스</div>
+      <div class="pocket-pace" id="pkPace">--:--</div>
+      <div class="pocket-status" id="pkStatus">측정 중…</div>
+      <div class="pocket-stats">
+        <span><b id="pkDist">0.00</b><small>km</small></span>
+        <span><b id="pkTime">00:00</b><small>시간</small></span>
+        <span><b id="pkTarget">--:--</b><small>목표</small></span>
+      </div>
+    </div>
+    <div class="pocket-unlock-wrap">
+      <div class="pocket-unlock" id="pkUnlock">
+        <svg class="ring" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45"/></svg>
+        <svg class="lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+      </div>
+      <div class="pocket-hint" id="pkHint">길게 눌러 잠금 해제</div>
+    </div>
+  </div>
 
   <!-- GPS LOST OVERLAY -->
   <div class="gps-overlay" id="gpsOverlay">
@@ -1438,6 +1560,10 @@ function handlePosition(pos) {
         totalDistanceM += d;
         if (instSpeed === null && dt > 0) instSpeed = d / dt;
       }
+    } else if (dt >= 10 && dt < 1800) {
+      // 화면 꺼짐·신호 끊김 뒤 복귀: 직선거리로라도 반영 (러닝 속도 범위일 때만)
+      const d = haversine(lastPos.lat, lastPos.lon, latitude, longitude);
+      if (d / dt < 7) totalDistanceM += d;
     }
   }
 
@@ -1449,6 +1575,7 @@ function handlePosition(pos) {
 
   lastPos = { lat: latitude, lon: longitude, t };
   updateRunUI();
+  syncPocket();
   coachingTick();
 }
 
@@ -1553,7 +1680,8 @@ function updateRunUI() {
   // Pace number color
   const pEl = $('currPace');
   pEl.textContent = fmtPace(curPaceSec);
-  pEl.className = 'curr-pace-num ' + (isFinite(curPaceSec) ? zone : 'idle');
+  const zoneCls = zone === 'on_pace' ? 'ok' : /slow/.test(zone) ? 'slow' : /fast/.test(zone) ? 'fast' : 'idle';
+  pEl.className = 'curr-pace-num ' + (isFinite(curPaceSec) ? zoneCls : 'idle');
 
   // Status bar
   const sb = $('statusBar');
@@ -1718,6 +1846,129 @@ function handleCmd(text) {
 }
 
 /* ───────────────────────────
+   KEEP AWAKE + POCKET MODE
+   iOS Safari는 화면이 꺼지면(잠기면) 음성·GPS가 멈춤 → 웹앱으로는 막을 수 없음.
+   대신 러닝 중 자동 잠금을 막고(Wake Lock / 무음 비디오 폴백),
+   주머니용 검은 화면 + 터치 잠금(포켓 모드)을 제공.
+─────────────────────────── */
+const BLANK_MP4 = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMpbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlN0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHLbWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABdm1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAATZzdGJsAAAAtnN0c2QAAAAAAAAAAQAAAKZhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAALGF2Y0MBQsAK/+EAFWdCwAraewEQAAADABAAAAMAIPEiagEABGjOD8gAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAAAKOAAACjgAAAAYc3R0cwAAAAAAAAABAAAAAgAAQAAAAAAUc3RzcwAAAAAAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAgAAAAEAAAAcc3RzegAAAAAAAAAAAAAAAgAAAoUAAAAJAAAAFHN0Y28AAAAAAAAAAQAAA1kAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjYwLjE2LjEwMAAAAAhmcmVlAAAClm1kYXQAAAJvBgX//2vcRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY0IHIzMTA4IDMxZTE5ZjkgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDIzIC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MSBkZWJsb2NrPTE6MDowIGFuYWx5c2U9MHgxOjB4MTExIG1lPWhleCBzdWJtZT0yIHBzeT0xIHBzeV9yZD0xLjAwOjAuMDAgbWl4ZWRfcmVmPTAgbWVfcmFuZ2U9MTYgY2hyb21hX21lPTEgdHJlbGxpcz0wIDh4OGRjdD0wIGNxbT0wIGRlYWR6b25lPTIxLDExIGZhc3RfcHNraXA9MSBjaHJvbWFfcXBfb2Zmc2V0PTAgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD0xMCByYz1jcmYgbWJ0cmVlPTEgY3JmPTIzLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjAwAIAAAAAOZYiEBb///w9FAAFPf4AAAAAFQZogFfU=';
+let wakeLock = null, noSleepVideo = null, keepAwakeOk = false;
+async function keepAwake() {
+  if (wakeLock) return;
+  if ('wakeLock' in navigator) {
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      keepAwakeOk = true;
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+      updateAwakeNote();
+      return;
+    } catch (e) { /* 폴백으로 */ }
+  }
+  try {
+    if (!noSleepVideo) {
+      const v = document.createElement('video');
+      v.setAttribute('playsinline', ''); v.setAttribute('muted', '');
+      v.muted = true; v.loop = true; v.src = BLANK_MP4;
+      v.style.cssText = 'position:fixed;left:0;top:0;width:1px;height:1px;opacity:.01;pointer-events:none;';
+      document.body.appendChild(v);
+      noSleepVideo = v;
+    }
+    await noSleepVideo.play();
+    keepAwakeOk = true;
+  } catch (e) {
+    keepAwakeOk = false;
+  }
+  updateAwakeNote();
+}
+function releaseAwake() {
+  if (wakeLock) { try { wakeLock.release(); } catch (e) {} wakeLock = null; }
+  if (noSleepVideo) { try { noSleepVideo.pause(); } catch (e) {} }
+  keepAwakeOk = false;
+}
+function updateAwakeNote() {
+  const el = $('awakeNote');
+  if (!el) return;
+  if (keepAwakeOk) {
+    el.className = 'awake-note';
+    el.textContent = '러닝 중엔 화면이 자동으로 꺼지지 않아요. 전원 버튼을 누르면 안내가 멈추니, 주머니에 넣을 땐 포켓 모드를 쓰세요.';
+  } else {
+    el.className = 'awake-note warn';
+    el.textContent = '이 기기에선 화면 꺼짐 방지가 안 돼요. 설정 › 디스플레이 및 밝기 › 자동 잠금을 \'안 함\'으로 바꾼 뒤 포켓 모드를 쓰세요.';
+  }
+}
+
+// 포켓 모드
+let pocketOn = false, pocketIdleTimer = null, unlockTimer = null;
+const POCKET_AUTO_MS = 30000;   // 러닝 화면에서 30초간 터치 없으면 자동 진입
+function enterPocket() {
+  if (!running) return;
+  pocketOn = true;
+  $('pocket').classList.add('show');
+  syncPocket();
+  if (!keepAwakeOk) keepAwake();
+}
+function exitPocket() {
+  pocketOn = false;
+  $('pocket').classList.remove('show');
+  $('pkUnlock').classList.remove('holding');
+  armPocketIdle();
+}
+function armPocketIdle() {
+  clearTimeout(pocketIdleTimer);
+  if (!running || paused || pocketOn) return;
+  pocketIdleTimer = setTimeout(enterPocket, POCKET_AUTO_MS);
+}
+function syncPocket() {
+  if (!pocketOn) return;
+  const cp = $('currPace');
+  $('pkPace').textContent = cp.textContent;
+  $('pkPace').className = 'pocket-pace ' + (cp.classList.contains('ok') ? 'ok' : cp.classList.contains('slow') ? 'slow' : cp.classList.contains('fast') ? 'fast' : '');
+  $('pkStatus').textContent = $('gpsOverlay').classList.contains('show') ? 'GPS 신호 찾는 중…'
+    : paused ? '일시정지 중' : $('statusText').textContent;
+  $('pkDist').textContent = $('mDist').textContent;
+  $('pkTime').textContent = $('mTime').textContent;
+  $('pkTarget').textContent = fmtPace(targetPaceSec);
+}
+$('pocketBtn').onclick = enterPocket;
+$('screen-run').addEventListener('pointerdown', () => { if (!pocketOn) armPocketIdle(); });
+
+// 포켓 화면: 모든 터치 차단, 잠금 버튼만 1.2초 길게 누르면 해제
+const pk = $('pocket');
+['touchstart', 'touchmove', 'touchend', 'click', 'contextmenu'].forEach(ev =>
+  pk.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); }, { passive: false }));
+pk.addEventListener('pointerdown', e => {
+  if (!keepAwakeOk) keepAwake();   // 사용자 터치 시 화면 꺼짐 방지 재시도
+  if (!$('pkUnlock').contains(e.target)) {
+    const h = $('pkHint'); h.classList.add('flash');
+    setTimeout(() => h.classList.remove('flash'), 900);
+  }
+});
+const ub = $('pkUnlock');
+const cancelHold = () => { clearTimeout(unlockTimer); ub.classList.remove('holding'); };
+ub.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  ub.classList.add('holding');
+  clearTimeout(unlockTimer);
+  unlockTimer = setTimeout(() => { cancelHold(); exitPocket(); }, 1200);
+});
+['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => ub.addEventListener(ev, cancelHold));
+
+// 화면이 꺼졌다 돌아왔을 때 복구
+let hiddenAt = null;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { if (running) hiddenAt = Date.now(); return; }
+  if (!running) return;
+  keepAwake();                                   // Wake Lock은 숨겨지면 자동 해제됨 → 재요청
+  try { speechSynthesis.cancel(); } catch (e) {}  // iOS: 잠금 후 음성 엔진이 멈춘 상태 복구
+  isSpeaking = false;
+  if (audioCtx && audioCtx.state !== 'running') { try { audioCtx.resume(); } catch (e) {} }
+  if (hiddenAt && Date.now() - hiddenAt > 5000 && !paused) {
+    enqueue('back', '화면이 꺼져 있던 동안 안내가 멈췄어요. 다시 안내할게요.', 0);
+  }
+  hiddenAt = null;
+});
+
+/* ───────────────────────────
    START / PAUSE / STOP
 ─────────────────────────── */
 $('startBtn').onclick = () => {
@@ -1744,7 +1995,9 @@ function startRun() {
   watchId = navigator.geolocation.watchPosition(handlePosition, handleGpsError, {
     enableHighAccuracy: true, maximumAge: 1000, timeout: 15000
   });
-  elapsedTimer = setInterval(updateRunUI, 1000);
+  elapsedTimer = setInterval(() => { updateRunUI(); syncPocket(); }, 1000);
+  keepAwake();
+  armPocketIdle();
 
   startGpsWatchdog();
   if (metroOn) startMetronome();
@@ -1760,7 +2013,7 @@ $('pauseBtn').onclick = () => {
     paused = true; pauseStart = Date.now();
     $('pauseBtn').textContent = '재개';
     $('pauseBtn').style.color = 'var(--lime)';
-    stopMetronome(); clearTimeout(cheerTimer);
+    stopMetronome(); clearTimeout(cheerTimer); clearTimeout(pocketIdleTimer);
     enqueue('pause', '일시정지했습니다', 0);
   } else {
     pausedMs += Date.now() - pauseStart; pauseStart = null;
@@ -1770,6 +2023,7 @@ $('pauseBtn').onclick = () => {
     if (metroOn) startMetronome();
     if (cheerOn) scheduleCheer();
     enqueue('resume', '재개합니다', 0);
+    armPocketIdle();
   }
 };
 
@@ -1784,6 +2038,7 @@ function finishRun() {
   if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
   stopMetronome(); clearTimeout(cheerTimer);
   speechSynthesis.cancel(); voiceQueue = []; isSpeaking = false;
+  exitPocket(); clearTimeout(pocketIdleTimer); releaseAwake();
 
   const elapsed = elapsedSec();
   const dist = totalDistanceM / 1000;
