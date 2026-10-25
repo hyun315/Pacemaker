@@ -7,24 +7,40 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>PACE ONE</title>
 <style>
-/* ─────────────────────────────────
-   DESIGN TOKENS — PACE ONE
-───────────────────────────────── */
+/* ═══════════════════════════════════════
+   PACE ONE — DESIGN SYSTEM v2
+   Premium running performance UI
+═══════════════════════════════════════ */
 :root {
-  --bg:        #0d0f14;
-  --surface:   #151820;
-  --border:    #252a35;
-  --lime:      #c8f500;
-  --lime-dim:  #4a5a00;
-  --orange:    #ff6b35;
-  --red:       #ff3b3b;
-  --blue:      #4da8ff;
-  --text:      #f0f2f5;
-  --sub:       #7a8494;
-  --mono:      'SF Mono','Roboto Mono','Menlo',monospace;
-  --radius:    16px;
-  --safe-top:  env(safe-area-inset-top, 0px);
-  --safe-bot:  env(safe-area-inset-bottom, 0px);
+  /* Colors */
+  --bg:         #0b0d11;
+  --bg2:        #0f1118;
+  --surface:    #141720;
+  --surface2:   #1a1e2a;
+  --border:     #1f2330;
+  --border2:    #2a3040;
+  --lime:       #c8f500;
+  --lime-dim:   #3d4a00;
+  --lime-glow:  rgba(200,245,0,.12);
+  --orange:     #ff6b35;
+  --orange-dim: rgba(255,107,53,.15);
+  --red:        #ff3b3b;
+  --blue:       #4da8ff;
+  --blue-dim:   rgba(77,168,255,.15);
+  --text:       #eef0f4;
+  --text2:      #b0b8c8;
+  --sub:        #606878;
+  --mono:       'SF Mono','Roboto Mono','Menlo',monospace;
+
+  /* Spacing / radius */
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --px:     20px;
+
+  /* Safe area */
+  --safe-top: env(safe-area-inset-top,  0px);
+  --safe-bot: env(safe-area-inset-bottom, 0px);
 }
 
 /* ─── RESET ─── */
@@ -38,7 +54,6 @@ body {
   overflow-x: hidden;
 }
 button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
-input[type=range] { accent-color: var(--lime); cursor: pointer; }
 
 /* ─── SCREENS ─── */
 .screen {
@@ -51,255 +66,414 @@ input[type=range] { accent-color: var(--lime); cursor: pointer; }
 }
 .screen.active { display: flex; }
 
-/* ─── TOPBAR ─── */
+/* ════════════════════════════════
+   TOPBAR
+════════════════════════════════ */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 20px 10px;
+  padding: 16px var(--px) 12px;
+  position: relative;
 }
 .brand {
   font-family: var(--mono);
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
-  letter-spacing: .22em;
+  letter-spacing: .3em;
   color: var(--lime);
   text-transform: uppercase;
 }
 .gps-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
+  gap: 5px;
+  padding: 5px 11px;
   border-radius: 20px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border2);
+  background: var(--surface);
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 9px;
   color: var(--sub);
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .08em;
 }
 .gps-dot {
-  width: 7px; height: 7px;
+  width: 6px; height: 6px;
   border-radius: 50%;
   background: var(--sub);
   flex-shrink: 0;
 }
-.gps-dot.ok   { background: var(--lime); box-shadow: 0 0 6px var(--lime); animation: blink 2s infinite; }
+.gps-dot.ok   { background: var(--lime); box-shadow: 0 0 5px var(--lime); animation: blink 2.5s ease-in-out infinite; }
 .gps-dot.warn { background: var(--orange); }
 .gps-dot.bad  { background: var(--red); }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-/* ─────────────────────────────────
+/* ════════════════════════════════
+   SHARED — CUSTOM TOGGLE
+════════════════════════════════ */
+.toggle {
+  position: relative;
+  width: 50px; height: 29px;
+  border-radius: 15px;
+  background: var(--surface2);
+  border: 1.5px solid var(--border2);
+  cursor: pointer;
+  transition: background .22s, border-color .22s;
+  flex-shrink: 0;
+}
+.toggle.on { background: #1e3300; border-color: var(--lime-dim); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px; left: 3px;
+  width: 21px; height: 21px;
+  border-radius: 50%;
+  background: var(--sub);
+  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  transition: transform .22s cubic-bezier(.34,1.3,.64,1), background .22s;
+}
+.toggle.on::after { transform: translateX(21px); background: var(--lime); }
+
+/* ════════════════════════════════
+   SHARED — CUSTOM SLIDER
+════════════════════════════════ */
+input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 36px;       /* tall hit area */
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  flex: 1;
+}
+/* WebKit track */
+input[type=range]::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border2);
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--lime);
+  margin-top: -9.5px;
+  box-shadow: 0 0 0 3px var(--lime-glow), 0 2px 6px rgba(0,0,0,.5);
+  transition: transform .12s;
+}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
+/* Firefox */
+input[type=range]::-moz-range-track {
+  height: 3px; border-radius: 2px;
+  background: var(--border2);
+}
+input[type=range]::-moz-range-thumb {
+  width: 22px; height: 22px;
+  border-radius: 50%; border: none;
+  background: var(--lime);
+  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+}
+
+/* ════════════════════════════════
+   SHARED — VOICE PILLS
+════════════════════════════════ */
+.pills {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.pill {
+  padding: 10px 6px;
+  text-align: center;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border2);
+  background: var(--surface);
+  color: var(--sub);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: .15s;
+  user-select: none;
+}
+.pill.active {
+  background: #192600;
+  color: var(--lime);
+  border-color: var(--lime-dim);
+  font-weight: 700;
+}
+
+/* ════════════════════════════════
    SETUP SCREEN
-───────────────────────────────── */
+════════════════════════════════ */
 #screen-setup {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
-.setup-body { flex: 1; padding: 4px 18px 24px; display: flex; flex-direction: column; gap: 14px; }
 
-.section-label {
+/* ── PACE HERO ── */
+.pace-hero {
+  padding: 28px var(--px) 22px;
+  text-align: center;
+  position: relative;
+}
+.pace-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: var(--px); right: var(--px);
+  height: 1px;
+  background: var(--border);
+}
+.pace-hero-eyebrow {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .16em;
+  font-size: 9px;
+  letter-spacing: .22em;
   color: var(--sub);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 14px;
 }
-
-/* PACE HERO */
-.pace-hero {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 20px 20px 16px;
-}
-.pace-hero-label { text-align: center; }
 .pace-big-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  margin: 8px 0;
+  gap: 0;
 }
+/* Large tap zones, not small circles */
 .pace-adj {
-  width: 44px; height: 44px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background: #1a1e27;
-  color: var(--text);
-  font-size: 22px;
+  width: 72px; height: 72px;
   display: flex; align-items: center; justify-content: center;
+  color: var(--sub);
+  font-size: 28px;
+  font-weight: 300;
   user-select: none;
+  border-radius: 50%;
+  transition: color .1s, background .1s;
 }
-.pace-adj:active { background: #252a35; }
+.pace-adj:active { color: var(--lime); background: var(--lime-glow); }
 .pace-display {
   font-family: var(--mono);
-  font-size: 52px;
-  font-weight: 700;
-  letter-spacing: -2px;
+  font-size: 68px;
+  font-weight: 800;
+  letter-spacing: -3px;
   color: var(--lime);
   line-height: 1;
-  min-width: 110px;
+  min-width: 138px;
   text-align: center;
 }
-.pace-unit { font-size: 12px; color: var(--sub); text-align: center; margin-top: 4px; }
-
-/* CARD */
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 16px;
+.pace-hero-unit {
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--sub);
+  letter-spacing: .04em;
 }
-.card-head {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 12px;
-}
-.card-title { font-size: 13px; font-weight: 600; }
+.pace-hero-unit span { color: var(--text2); }
 
-/* TOGGLE SWITCH */
-.toggle {
+/* ── SETTINGS BODY ── */
+.setup-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── SECTION ── */
+.s-section {
+  padding: 18px var(--px);
   position: relative;
-  width: 46px; height: 27px;
-  border-radius: 14px;
-  background: #252a35;
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: background .2s;
-  flex-shrink: 0;
 }
-.toggle.on { background: var(--lime-dim); }
-.toggle::after {
+.s-section + .s-section::before {
   content: '';
   position: absolute;
-  top: 2px; left: 2px;
-  width: 21px; height: 21px;
-  border-radius: 50%;
-  background: #8a9aaa;
-  transition: transform .2s, background .2s;
+  top: 0; left: var(--px); right: var(--px);
+  height: 1px;
+  background: var(--border);
 }
-.toggle.on::after { transform: translateX(19px); background: var(--lime); }
 
-/* PILLS */
-.pills { display: flex; gap: 8px; }
-.pill {
-  flex: 1; padding: 9px 4px; text-align: center;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #1a1e27;
-  color: var(--sub);
-  font-size: 13px;
-  cursor: pointer;
-  transition: .15s;
+/* Row with label + toggle */
+.s-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
-.pill.active {
-  background: #1a2800;
-  color: var(--lime);
-  border-color: var(--lime-dim);
+.s-label-group { flex: 1; min-width: 0; }
+.s-label {
+  font-size: 14px;
   font-weight: 600;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+.s-desc {
+  font-size: 11.5px;
+  color: var(--sub);
+  line-height: 1.45;
 }
 
-/* SLIDER ROW */
-.slider-row { display: flex; align-items: center; gap: 12px; }
-.slider-row input[type=range] { flex: 1; height: 4px; }
+/* Inline content below a row */
+.s-content { margin-top: 14px; }
+
+/* Slider pair */
+.slider-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.slider-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.slider-line-label {
+  font-size: 11px;
+  color: var(--sub);
+  width: 28px;
+  flex-shrink: 0;
+  letter-spacing: .02em;
+}
 .slider-val {
   font-family: var(--mono);
-  font-size: 13px;
-  width: 70px;
+  font-size: 12px;
+  color: var(--text2);
+  width: 60px;
   text-align: right;
-  color: var(--text);
+  flex-shrink: 0;
 }
 
-/* CMD HINT */
+/* Cadence number display */
+.cadence-display-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.cadence-big {
+  font-family: var(--mono);
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+}
+.cadence-big-unit {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--sub);
+}
+
+/* Command chips */
 .cmd-chips {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
 }
 .chip {
   font-family: var(--mono);
   font-size: 11px;
-  background: #1a1e27;
-  border: 1px solid var(--border);
-  color: #99aabb;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  color: var(--text2);
   border-radius: 6px;
-  padding: 3px 8px;
+  padding: 4px 9px;
+  letter-spacing: .01em;
 }
 .voice-log {
   font-family: var(--mono);
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--sub);
-  min-height: 16px;
+  min-height: 14px;
   margin-top: 8px;
 }
 .voice-log b { color: var(--lime); }
 
-/* START BTN */
-.start-btn {
-  margin: 4px 18px 0;
-  padding: 19px;
-  border-radius: 18px;
-  background: var(--lime);
-  color: #0a0c0f;
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-align: center;
-  transition: .12s;
+/* Recog status note */
+.recog-note {
+  font-size: 11.5px;
+  color: var(--sub);
+  line-height: 1.5;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  margin-top: 10px;
 }
-.start-btn:active { transform: scale(.97); opacity: .9; }
+.recog-note strong { color: var(--text2); }
 
-/* ─────────────────────────────────
-   RUNNING SCREEN
-───────────────────────────────── */
-#screen-run {
-  position: relative;
+/* ── START BUTTON ── */
+.start-wrap {
+  padding: 16px var(--px);
+  padding-bottom: max(16px, var(--safe-bot));
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  position: sticky;
+  bottom: 0;
 }
+.start-btn {
+  display: block;
+  width: 100%;
+  padding: 19px;
+  border-radius: var(--r-lg);
+  background: var(--lime);
+  color: #090b0e;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-align: center;
+  text-transform: uppercase;
+  transition: transform .1s, opacity .1s;
+  box-shadow: 0 0 30px rgba(200,245,0,.2);
+}
+.start-btn:active { transform: scale(.97); opacity: .88; }
+
+/* ════════════════════════════════
+   RUNNING SCREEN
+════════════════════════════════ */
+#screen-run { position: relative; }
 .run-body {
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: 0 18px 12px;
-  gap: 12px;
+  padding: 0 var(--px) 12px;
+  gap: 10px;
 }
 
-/* STATUS BAR */
+/* STATUS PILL */
 .status-bar {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 7px 16px;
   border-radius: 20px;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border2);
   background: var(--surface);
-  margin: 0 18px 4px;
+  margin: 0 var(--px) 2px;
   font-size: 12px;
+  font-weight: 600;
+  transition: border-color .3s, color .3s;
 }
-.status-bar .s-icon { font-size: 14px; }
-.status-bar .s-text { font-weight: 600; }
-.status-bar.ok   { border-color: var(--lime-dim); color: var(--lime); }
-.status-bar.slow { border-color: #5c2800; color: var(--orange); }
-.status-bar.fast { border-color: #0f2a4a; color: var(--blue); }
-.status-bar.gps-bad { border-color: #4a0000; color: var(--red); }
+.status-bar.ok   { border-color: var(--lime-dim); color: var(--lime); background: rgba(200,245,0,.05); }
+.status-bar.slow { border-color: rgba(255,107,53,.35); color: var(--orange); background: var(--orange-dim); }
+.status-bar.fast { border-color: rgba(77,168,255,.3); color: var(--blue); background: var(--blue-dim); }
 
-/* MAIN PACE */
+/* MAIN PACE BLOCK */
 .pace-block {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px 20px 20px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 24px 20px 18px;
   text-align: center;
-  position: relative;
 }
 .curr-pace-label {
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: .2em;
+  font-size: 9px;
+  letter-spacing: .22em;
   color: var(--sub);
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .curr-pace-num {
   font-family: var(--mono);
-  font-size: 72px;
+  font-size: 76px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -3px;
@@ -309,95 +483,94 @@ input[type=range] { accent-color: var(--lime); cursor: pointer; }
 .curr-pace-num.slow { color: var(--orange); }
 .curr-pace-num.fast { color: var(--blue); }
 .curr-pace-num.idle { color: var(--sub); }
-.pace-unit-run { font-size: 13px; color: var(--sub); margin-top: 4px; }
-
+.pace-unit-run { font-size: 12px; color: var(--sub); margin-top: 6px; letter-spacing: .04em; }
 .target-row-run {
   display: flex; align-items: center; justify-content: center;
-  gap: 8px; margin-top: 12px;
+  gap: 6px; margin-top: 12px;
   font-family: var(--mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--sub);
 }
-.target-row-run b { color: var(--text); font-size: 14px; }
+.target-row-run b { color: var(--text2); font-size: 13px; }
 
 /* METRICS GRID */
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  gap: 8px;
 }
 .metric {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-md);
   padding: 14px 10px 12px;
   text-align: center;
 }
 .metric-v {
   font-family: var(--mono);
-  font-size: 22px;
+  font-size: 21px;
   font-weight: 700;
   line-height: 1;
 }
 .metric-l {
-  font-size: 10px;
+  font-size: 9px;
   color: var(--sub);
   margin-top: 6px;
   text-transform: uppercase;
-  letter-spacing: .06em;
+  letter-spacing: .08em;
 }
 
 /* CADENCE ROW */
 .cadence-row-run {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-md);
   padding: 14px 16px;
   display: flex; align-items: center; justify-content: space-between;
 }
 .cadence-info { display: flex; flex-direction: column; gap: 2px; }
-.cadence-val-run {
-  font-family: var(--mono);
-  font-size: 20px;
-  font-weight: 700;
-}
-.cadence-sub { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; }
+.cadence-val-run { font-family: var(--mono); font-size: 22px; font-weight: 700; }
+.cadence-sub { font-size: 9px; color: var(--sub); text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
 .metro-btn {
-  padding: 8px 16px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: #1a1e27;
+  padding: 9px 18px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid var(--border2);
+  background: var(--surface2);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--sub);
+  letter-spacing: .02em;
+  transition: .15s;
 }
-.metro-btn.on { background: #1a2800; color: var(--lime); border-color: var(--lime-dim); }
+.metro-btn.on { background: #162000; color: var(--lime); border-color: var(--lime-dim); }
 
 /* RUN CONTROLS */
 .run-controls {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 0 0 4px;
+  gap: 8px;
 }
 .ctrl-btn {
-  padding: 16px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
+  padding: 17px;
+  border-radius: var(--r-md);
+  border: 1.5px solid var(--border2);
   background: var(--surface);
   font-size: 14px;
   font-weight: 700;
   text-align: center;
+  transition: opacity .1s;
 }
-.ctrl-btn.pause   { color: var(--orange); border-color: #5c2800; }
-.ctrl-btn.stop    { color: var(--red); border-color: #4a0000; }
-.ctrl-btn:active  { opacity: .75; }
+.ctrl-btn.pause { color: var(--orange); border-color: rgba(255,107,53,.35); }
+.ctrl-btn.stop  { color: var(--red);    border-color: rgba(255,59,59,.3); }
+.ctrl-btn:active { opacity: .65; }
 
-/* GPS WARNING OVERLAY */
+/* GPS OVERLAY */
 .gps-overlay {
   position: absolute;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(13,15,20,.85);
+  background: rgba(11,13,17,.88);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: none;
   flex-direction: column;
   align-items: center;
@@ -408,77 +581,81 @@ input[type=range] { accent-color: var(--lime); cursor: pointer; }
   text-align: center;
 }
 .gps-overlay.show { display: flex; }
-.gps-overlay-icon { font-size: 48px; }
-.gps-overlay-title { font-size: 18px; font-weight: 700; color: var(--orange); }
-.gps-overlay-sub { font-size: 13px; color: var(--sub); line-height: 1.5; }
+.gps-overlay-icon { font-size: 44px; }
+.gps-overlay-title { font-size: 17px; font-weight: 700; color: var(--orange); }
+.gps-overlay-sub { font-size: 13px; color: var(--sub); line-height: 1.6; }
 
-/* ─────────────────────────────────
+/* ════════════════════════════════
    RESULTS SCREEN
-───────────────────────────────── */
+════════════════════════════════ */
 #screen-result { overflow-y: auto; -webkit-overflow-scrolling: touch; }
-.result-body { flex: 1; padding: 8px 18px 32px; display: flex; flex-direction: column; gap: 16px; }
+.result-body { flex: 1; padding: 8px var(--px) 32px; display: flex; flex-direction: column; gap: 14px; }
 
 .result-hero {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px 20px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-lg);
+  padding: 28px 20px 22px;
   text-align: center;
 }
-.result-hero-icon { font-size: 40px; margin-bottom: 8px; }
+.result-hero-icon { font-size: 38px; margin-bottom: 10px; }
 .result-hero-title { font-size: 20px; font-weight: 800; margin-bottom: 4px; }
 .result-hero-sub { font-size: 13px; color: var(--sub); }
 
 .result-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 .result-stat {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-md);
   padding: 16px 14px;
 }
 .result-stat-v {
   font-family: var(--mono);
-  font-size: 26px;
-  font-weight: 700;
+  font-size: 27px;
+  font-weight: 800;
   color: var(--lime);
   line-height: 1;
   margin-bottom: 6px;
 }
-.result-stat-l { font-size: 11px; color: var(--sub); text-transform: uppercase; letter-spacing: .06em; }
+.result-stat-l { font-size: 10px; color: var(--sub); text-transform: uppercase; letter-spacing: .08em; }
 
 .coaching-summary {
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1.5px solid var(--border2);
+  border-radius: var(--r-lg);
   padding: 16px;
 }
-.coaching-summary h3 { font-size: 13px; font-weight: 600; margin: 0 0 12px; }
+.coaching-summary h3 { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--sub); margin: 0 0 12px; }
 .coach-log-item {
   font-size: 12px;
   color: var(--sub);
-  padding: 6px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--border);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 .coach-log-item:last-child { border-bottom: none; }
-.coach-log-item b { color: var(--text); }
+.coach-log-item b { color: var(--text2); }
 
 .again-btn {
-  padding: 18px;
-  border-radius: 18px;
+  padding: 19px;
+  border-radius: var(--r-lg);
   background: var(--lime);
-  color: #0a0c0f;
-  font-size: 16px;
+  color: #090b0e;
+  font-size: 15px;
   font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
   text-align: center;
+  transition: opacity .1s, transform .1s;
+  box-shadow: 0 0 28px rgba(200,245,0,.18);
 }
-.again-btn:active { opacity: .85; }
+.again-btn:active { opacity: .85; transform: scale(.97); }
 
-/* ─── UTILS ─── */
+/* ─── LEGACY COMPAT ─── */
 .mt4 { margin-top: 4px; }
 .sub-text { font-size: 11.5px; color: var(--sub); line-height: 1.5; margin-top: 6px; }
 </style>
@@ -497,84 +674,115 @@ input[type=range] { accent-color: var(--lime); cursor: pointer; }
     </div>
   </div>
 
+  <!-- ─ 목표 페이스 HERO ─ -->
+  <div class="pace-hero">
+    <div class="pace-hero-eyebrow">목표 페이스</div>
+    <div class="pace-big-row">
+      <button class="pace-adj" id="paceDown">−</button>
+      <div class="pace-display" id="setupPace">5:30</div>
+      <button class="pace-adj" id="paceUp">+</button>
+    </div>
+    <div class="pace-hero-unit"><span>분 / km</span> &nbsp;·&nbsp; 10초 단위</div>
+  </div>
+
   <div class="setup-body">
 
-    <!-- TARGET PACE -->
-    <div class="pace-hero">
-      <div class="section-label pace-hero-label">목표 페이스</div>
-      <div class="pace-big-row">
-        <button class="pace-adj" id="paceDown">−</button>
-        <div class="pace-display" id="setupPace">5:30</div>
-        <button class="pace-adj" id="paceUp">+</button>
-      </div>
-      <div class="pace-unit">분 / km &nbsp;·&nbsp; 10초 단위</div>
-    </div>
-
-    <!-- VOICE COACH -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">🎙️ 음성 코치</div>
+    <!-- ─ 음성 코치 ─ -->
+    <div class="s-section">
+      <div class="s-row">
+        <div class="s-label-group">
+          <div class="s-label">음성 코치</div>
+          <div class="s-desc">페이스 코칭 및 구간 안내</div>
+        </div>
         <div class="toggle on" id="voiceToggle"></div>
       </div>
-      <div class="pills">
-        <div class="pill active" data-voice="female">여성</div>
-        <div class="pill" data-voice="male">남성</div>
-        <div class="pill" data-voice="min">최소 안내</div>
+      <div class="s-content">
+        <div class="pills">
+          <div class="pill active" data-voice="female">여성</div>
+          <div class="pill" data-voice="male">남성</div>
+          <div class="pill" data-voice="min">최소</div>
+        </div>
+        <div class="voice-log" id="cmdLog"></div>
       </div>
-      <div class="sub-text mt4">달리며 말로 명령하세요</div>
-      <div class="cmd-chips">
-        <span class="chip">빨리</span>
-        <span class="chip">느리게</span>
-        <span class="chip">5분 페이스</span>
-        <span class="chip">케이던스 180</span>
-      </div>
-      <div class="voice-log" id="cmdLog"></div>
     </div>
 
-    <!-- VOICE CMD LISTEN -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">🎤 음성 명령 인식</div>
+    <!-- ─ 음성 명령 ─ -->
+    <div class="s-section">
+      <div class="s-row">
+        <div class="s-label-group">
+          <div class="s-label">음성 명령 인식</div>
+          <div class="s-desc">화면 켜진 상태에서만 동작</div>
+        </div>
         <div class="toggle" id="listenToggle"></div>
       </div>
-      <div class="sub-text" id="recogStatus">꺼짐 — 화면을 켜둔 상태에서만 동작합니다</div>
+      <div class="s-content">
+        <div class="cmd-chips">
+          <span class="chip">빨리</span>
+          <span class="chip">느리게</span>
+          <span class="chip">5분 페이스</span>
+          <span class="chip">케이던스 180</span>
+        </div>
+        <div class="recog-note" id="recogStatus">
+          <strong>꺼짐</strong> — 배경 음성 인식은 지원되지 않습니다
+        </div>
+      </div>
     </div>
 
-    <!-- METRONOME -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">🥁 메트로놈 케이던스</div>
+    <!-- ─ 메트로놈 케이던스 ─ -->
+    <div class="s-section">
+      <div class="s-row">
+        <div class="s-label-group">
+          <div class="s-label">메트로놈</div>
+          <div class="s-desc">케이던스 박자음</div>
+        </div>
         <div class="toggle" id="metroToggle"></div>
       </div>
-      <div class="slider-row">
-        <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
-        <div class="slider-val" id="cadenceVal">172 spm</div>
-      </div>
-      <div class="slider-row mt4" style="margin-top:10px;">
-        <span style="font-size:12px;color:var(--sub);width:36px;">음량</span>
-        <input type="range" id="metroVol" min="0" max="100" value="50" step="5">
-        <div class="slider-val" id="metroVolVal">50%</div>
+      <div class="s-content">
+        <div class="cadence-display-row">
+          <div class="cadence-big" id="cadenceVal2">172</div>
+          <div class="cadence-big-unit">spm</div>
+        </div>
+        <div class="slider-pair">
+          <div class="slider-line">
+            <span class="slider-line-label">SPM</span>
+            <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
+            <div class="slider-val" id="cadenceVal">172</div>
+          </div>
+          <div class="slider-line">
+            <span class="slider-line-label">음량</span>
+            <input type="range" id="metroVol" min="0" max="100" value="50" step="5">
+            <div class="slider-val" id="metroVolVal">50%</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- CHEER -->
-    <div class="card">
-      <div class="card-head">
-        <div class="card-title">📣 응원 보이스</div>
+    <!-- ─ 응원 보이스 ─ -->
+    <div class="s-section">
+      <div class="s-row">
+        <div class="s-label-group">
+          <div class="s-label">응원 보이스</div>
+          <div class="s-desc">주기적 응원 · km 마일스톤 알림</div>
+        </div>
         <div class="toggle on" id="cheerToggle"></div>
       </div>
-      <div class="slider-row">
-        <span style="font-size:12px;color:var(--sub);width:36px;">빈도</span>
-        <input type="range" id="cheerFreq" min="15" max="90" value="40" step="5">
-        <div class="slider-val" id="cheerFreqVal">~40초</div>
+      <div class="s-content">
+        <div class="slider-line">
+          <span class="slider-line-label">빈도</span>
+          <input type="range" id="cheerFreq" min="15" max="90" value="40" step="5">
+          <div class="slider-val" id="cheerFreqVal">~40초</div>
+        </div>
       </div>
-      <div class="sub-text mt4">거리 마일스톤(1km, 2km…)마다 자동 알림</div>
     </div>
 
+    <!-- 스크롤 여유 공간 -->
+    <div style="height:8px;"></div>
   </div><!-- .setup-body -->
 
-  <button class="start-btn" id="startBtn">러닝 시작</button>
-  <div style="height:12px;"></div>
+  <!-- ─ 시작 버튼 (sticky) ─ -->
+  <div class="start-wrap">
+    <button class="start-btn" id="startBtn">러닝 시작</button>
+  </div>
 </div><!-- #screen-setup -->
 
 
@@ -841,7 +1049,8 @@ document.querySelectorAll('.pill[data-voice]').forEach(p => {
 
 $('cadenceSlider').oninput = e => {
   cadence = +e.target.value;
-  $('cadenceVal').textContent = cadence + ' spm';
+  $('cadenceVal').textContent = cadence;
+  if ($('cadenceVal2')) $('cadenceVal2').textContent = cadence;
   $('runCadence').textContent = cadence;
   if (metroOn) startMetronome();
 };
