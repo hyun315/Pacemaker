@@ -227,6 +227,31 @@ input[type=range]::-moz-range-thumb {
 .voice-note:empty { display: none; }
 .voice-note b { color: var(--text); font-weight: 600; }
 .voice-note.warn { color: #ffb38f; }
+.voice-pick { margin-top: 14px; }
+.voice-pick-label { display: block; font-size: 15px; font-weight: 700; color: var(--text2); margin-bottom: 8px; }
+.voice-pick-row { display: flex; gap: 8px; }
+.voice-pick-row select {
+  flex: 1; min-width: 0;
+  -webkit-appearance: none; appearance: none;
+  font: inherit; font-size: 17px; font-weight: 600;
+  color: var(--text);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23a9adb5' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 14px center;
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 13px 38px 13px 14px;
+}
+.voice-test-btn {
+  flex-shrink: 0;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1.5px solid #5c7a00;
+  background: rgba(200,255,0,.07);
+  color: var(--lime);
+  font-size: 16px; font-weight: 800;
+}
+.voice-test-btn:active { opacity: .7; }
+.voice-diag { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--sub); word-break: keep-all; }
+.voice-diag b { color: var(--text2); }
 
 /* ════════════════════════════════
    SETUP SCREEN
@@ -939,6 +964,14 @@ input[type=range]::-moz-range-thumb {
           </div>
         </div>
         <div class="voice-note" id="voiceNote"></div>
+        <div class="voice-pick" id="voicePick">
+          <label class="voice-pick-label" for="voiceSelect" id="voicePickLabel">남성 목소리 직접 고르기</label>
+          <div class="voice-pick-row">
+            <select id="voiceSelect" aria-label="목소리 선택"></select>
+            <button class="voice-test-btn" id="voiceTestBtn">들어보기</button>
+          </div>
+          <div class="voice-diag" id="voiceDiag"></div>
+        </div>
       </div>
     </div>
 
@@ -1460,11 +1493,13 @@ const KO_MALE_NAMES = [
   'minsu','minsang','jinho','junho','hyunsu','injoon','bongjin','gookmin','seojun',
   '민수','민상','진호','준호','현수','인준','봉진','국민','남성','남자',
   'ko-kr-x-jmh','ko-kr-x-koc',  // Android Google TTS 남성 계열
+  'reed','eddy','rocko','grandpa',  // Apple Eloquence 남성
 ];
 const KO_FEMALE_NAMES = [
   'yuna','sora','suhyun','sunhi','jimin','seohyeon','soonbok','yujin','heami','google 한국',
   '유나','소라','수현','선희','지민','서현','순복','유진','혜미','여성','여자',
   'ko-kr-x-ism','ko-kr-x-kob',
+  'shelley','sandy','grandma','.flo',  // Apple Eloquence 여성
 ];
 function voiceGenderOf(v) {
   const n = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
@@ -1483,8 +1518,20 @@ function loadVoices() {
   koVoices.sort((a, b) => q(b) - q(a));
   updateVoiceNote();
 }
+// 직접 고른 음성 저장 (성별별)
+const VOICE_KEY = g => 'paceone.voice.' + g;
+function savedVoiceId(g) { try { return localStorage.getItem(VOICE_KEY(g)) || ''; } catch (e) { return ''; } }
+function saveVoiceId(g, id) { try { id ? localStorage.setItem(VOICE_KEY(g), id) : localStorage.removeItem(VOICE_KEY(g)); } catch (e) {} }
+const voiceId = v => v.voiceURI || v.name;
+const pickGender = () => voiceGender === 'male' ? 'male' : 'female';
+
 function pickVoice() {
   if (!koVoices.length) loadVoices();
+  const sid = savedVoiceId(pickGender());
+  if (sid) {
+    const v = koVoices.find(x => voiceId(x) === sid);
+    if (v) return { voice: v, pitch: 1.0, rate: 1.0, fallback: false, manual: true };
+  }
   const female = koVoices.filter(v => voiceGenderOf(v) === 'female');
   const male   = koVoices.filter(v => voiceGenderOf(v) === 'male');
   const other  = koVoices.filter(v => voiceGenderOf(v) === 'unknown');
@@ -1497,22 +1544,66 @@ function pickVoice() {
   const base = female[0] || other[0] || koVoices[0] || null;
   return { voice: base, pitch: 1.0, rate: 1.0, fallback: false };
 }
+function voiceLabel(v) {
+  const g = voiceGenderOf(v);
+  const id = (v.voiceURI || '').toLowerCase();
+  const q = /premium|enhanced|고품질|향상/i.test(v.name) ? ''
+          : /premium/.test(id) ? ' · 고품질' : /enhanced/.test(id) ? ' · 향상됨' : '';
+  return v.name + (g === 'male' ? ' · 남성' : g === 'female' ? ' · 여성' : '') + q;
+}
+function populateVoiceSelect() {
+  const sel = $('voiceSelect');
+  if (!sel) return;
+  const g = pickGender();
+  const sid = savedVoiceId(g);
+  sel.innerHTML = '';
+  const auto = document.createElement('option');
+  auto.value = ''; auto.textContent = '자동 선택';
+  sel.appendChild(auto);
+  koVoices.forEach(v => {
+    const o = document.createElement('option');
+    o.value = voiceId(v); o.textContent = voiceLabel(v);
+    sel.appendChild(o);
+  });
+  sel.value = koVoices.some(v => voiceId(v) === sid) ? sid : '';
+  $('voicePickLabel').textContent = (g === 'male' ? '남성' : '여성') + ' 목소리 직접 고르기';
+}
 function updateVoiceNote() {
   const el = $('voiceNote');
   if (!el) return;
+  $('voicePick').style.display = voiceGender === 'min' ? 'none' : '';
   if (voiceGender === 'min') { el.className = 'voice-note'; el.innerHTML = '페이스 코칭과 경고만 안내하고, 응원은 생략합니다.'; return; }
-  if (!koVoices.length) { el.className = 'voice-note'; el.textContent = ''; return; }
+  populateVoiceSelect();
+  const diag = $('voiceDiag');
+  if (!koVoices.length) {
+    el.className = 'voice-note'; el.textContent = '';
+    diag.textContent = '아직 기기 음성 목록을 불러오지 못했어요. 잠시 후 다시 확인해 주세요.';
+    return;
+  }
   const sel = pickVoice();
-  const name = sel.voice ? sel.voice.name.replace(/\s*\(.*\)$/, '') : '기본 음성';
+  const name = sel.voice ? sel.voice.name : '기본 음성';
   if (sel.fallback) {
     el.className = 'voice-note warn';
-    el.innerHTML = '이 기기에 한국어 <b>남성 음성</b>이 없어 낮은 톤으로 대신 읽어요.<br>' +
-      '아이폰: 설정 › 손쉬운 사용 › 읽기 및 말하기 › 음성 › 한국어에서 남성 음성을 내려받은 뒤 앱을 다시 열면 적용됩니다.';
+    el.innerHTML = '남성으로 확인된 한국어 음성을 찾지 못해 낮은 톤으로 대신 읽어요. 아래 목록에서 내려받은 음성을 직접 골라 보세요.';
   } else {
     el.className = 'voice-note';
-    el.innerHTML = '사용 중인 음성: <b>' + name + '</b>';
+    el.innerHTML = '사용 중인 음성: <b>' + name.replace(/</g, '&lt;') + '</b>' + (sel.manual ? ' (직접 선택)' : '');
   }
+  diag.innerHTML = '이 기기에서 Safari가 찾은 한국어 음성: <b>' + koVoices.length + '개</b>' +
+    (voiceGender === 'male' && !sel.manual && !koVoices.some(v => voiceGenderOf(v) === 'male')
+      ? '<br>내려받은 음성이 목록에 없다면 ① Siri 음성인지 확인(Siri 음성은 Safari에서 쓸 수 없음) ② 앱 전환 화면에서 Safari를 위로 밀어 완전히 종료 후 다시 열기를 해 보세요.'
+      : '');
 }
+$('voiceSelect').onchange = e => {
+  saveVoiceId(pickGender(), e.target.value);
+  updateVoiceNote();
+  speechSynthesis.cancel(); isSpeaking = false; voiceQueue = [];
+  enqueue('voice_test', '이 목소리로 안내할게요. 목표 페이스 5분 30초.', 0);
+};
+$('voiceTestBtn').onclick = () => {
+  speechSynthesis.cancel(); isSpeaking = false; voiceQueue = [];
+  enqueue('voice_test', '이 목소리로 안내할게요. 목표 페이스 5분 30초.', 0);
+};
 loadVoices();
 if ('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
 // iOS는 voiceschanged가 늦거나 안 오는 경우가 있어 몇 번 더 확인
