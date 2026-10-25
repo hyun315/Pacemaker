@@ -73,7 +73,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px var(--px) 12px;
+  padding: 10px var(--px);
   position: relative;
 }
 .brand {
@@ -186,13 +186,13 @@ input[type=range]::-moz-range-thumb {
   gap: 6px;
 }
 .pill {
-  padding: 10px 6px;
+  padding: 8px 6px;
   text-align: center;
   border-radius: var(--r-sm);
   border: 1.5px solid var(--border2);
   background: var(--surface);
   color: var(--sub);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: .15s;
@@ -215,7 +215,7 @@ input[type=range]::-moz-range-thumb {
 
 /* ── PACE HERO ── */
 .pace-hero {
-  padding: 28px var(--px) 22px;
+  padding: 16px var(--px) 12px;
   text-align: center;
   position: relative;
 }
@@ -232,7 +232,7 @@ input[type=range]::-moz-range-thumb {
   letter-spacing: .22em;
   color: var(--sub);
   text-transform: uppercase;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 .pace-big-row {
   display: flex;
@@ -240,12 +240,12 @@ input[type=range]::-moz-range-thumb {
   justify-content: center;
   gap: 0;
 }
-/* Large tap zones, not small circles */
+/* Large tap zones */
 .pace-adj {
-  width: 72px; height: 72px;
+  width: 60px; height: 60px;
   display: flex; align-items: center; justify-content: center;
   color: var(--sub);
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 300;
   user-select: none;
   border-radius: 50%;
@@ -263,8 +263,8 @@ input[type=range]::-moz-range-thumb {
   text-align: center;
 }
 .pace-hero-unit {
-  margin-top: 10px;
-  font-size: 12px;
+  margin-top: 6px;
+  font-size: 11px;
   color: var(--sub);
   letter-spacing: .04em;
 }
@@ -279,7 +279,7 @@ input[type=range]::-moz-range-thumb {
 
 /* ── SECTION ── */
 .s-section {
-  padding: 18px var(--px);
+  padding: 12px var(--px);
   position: relative;
 }
 .s-section + .s-section::before {
@@ -299,128 +299,108 @@ input[type=range]::-moz-range-thumb {
 }
 .s-label-group { flex: 1; min-width: 0; }
 .s-label {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 .s-desc {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--sub);
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 /* Inline content below a row */
-.s-content { margin-top: 14px; }
+.s-content { margin-top: 10px; }
 
 /* Slider pair */
 .slider-pair {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
 }
 .slider-line {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
 }
 .slider-line-label {
-  font-size: 11px;
+  font-size: 10px;
   color: var(--sub);
   width: 28px;
   flex-shrink: 0;
   letter-spacing: .02em;
+  font-family: var(--mono);
 }
 .slider-val {
   font-family: var(--mono);
   font-size: 12px;
   color: var(--text2);
-  width: 60px;
+  width: 52px;
   text-align: right;
   flex-shrink: 0;
 }
-
-/* Cadence number display */
-.cadence-display-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-.cadence-big {
-  font-family: var(--mono);
-  font-size: 38px;
-  font-weight: 800;
+/* Cadence SPM value — more prominent */
+.slider-val--spm {
+  font-size: 17px;
+  font-weight: 700;
   color: var(--text);
-  line-height: 1;
-}
-.cadence-big-unit {
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--sub);
+  width: 60px;
 }
 
 /* Command chips */
 .cmd-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
+  gap: 5px;
+  margin-top: 8px;
 }
 .chip {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 10px;
   background: var(--surface);
   border: 1px solid var(--border2);
   color: var(--text2);
   border-radius: 6px;
-  padding: 4px 9px;
+  padding: 3px 8px;
   letter-spacing: .01em;
 }
-.voice-log {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--sub);
-  min-height: 14px;
-  margin-top: 8px;
-}
-.voice-log b { color: var(--lime); }
 
 /* Recog status note */
 .recog-note {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--sub);
-  line-height: 1.5;
-  padding: 8px 10px;
+  line-height: 1.45;
+  padding: 6px 10px;
   border-radius: var(--r-sm);
   background: var(--surface);
   border: 1px solid var(--border);
-  margin-top: 10px;
+  margin-top: 8px;
 }
 .recog-note strong { color: var(--text2); }
 
 /* ── START BUTTON ── */
 .start-wrap {
-  padding: 16px var(--px);
-  padding-bottom: max(16px, var(--safe-bot));
-  background: linear-gradient(to top, var(--bg) 70%, transparent);
+  padding: 12px var(--px);
+  padding-bottom: max(12px, var(--safe-bot));
+  background: linear-gradient(to top, var(--bg) 60%, transparent);
   position: sticky;
   bottom: 0;
 }
 .start-btn {
   display: block;
   width: 100%;
-  padding: 19px;
+  padding: 17px;
   border-radius: var(--r-lg);
   background: var(--lime);
-  color: #090b0e;
+  color: #080a0d;
   font-size: 15px;
   font-weight: 800;
-  letter-spacing: .06em;
+  letter-spacing: .08em;
   text-align: center;
   text-transform: uppercase;
   transition: transform .1s, opacity .1s;
-  box-shadow: 0 0 30px rgba(200,245,0,.2);
+  box-shadow: 0 0 24px rgba(200,245,0,.25), 0 2px 8px rgba(0,0,0,.4);
 }
 .start-btn:active { transform: scale(.97); opacity: .88; }
 
@@ -700,9 +680,8 @@ input[type=range]::-moz-range-thumb {
         <div class="pills">
           <div class="pill active" data-voice="female">여성</div>
           <div class="pill" data-voice="male">남성</div>
-          <div class="pill" data-voice="min">최소</div>
+          <div class="pill" data-voice="min">최소 안내</div>
         </div>
-        <div class="voice-log" id="cmdLog"></div>
       </div>
     </div>
 
@@ -725,6 +704,7 @@ input[type=range]::-moz-range-thumb {
         <div class="recog-note" id="recogStatus">
           <strong>꺼짐</strong> — 배경 음성 인식은 지원되지 않습니다
         </div>
+        <div style="font-family:var(--mono);font-size:10px;color:var(--sub);min-height:0;margin-top:4px;" id="cmdLog"></div>
       </div>
     </div>
 
@@ -738,15 +718,11 @@ input[type=range]::-moz-range-thumb {
         <div class="toggle" id="metroToggle"></div>
       </div>
       <div class="s-content">
-        <div class="cadence-display-row">
-          <div class="cadence-big" id="cadenceVal2">172</div>
-          <div class="cadence-big-unit">spm</div>
-        </div>
         <div class="slider-pair">
           <div class="slider-line">
             <span class="slider-line-label">SPM</span>
             <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
-            <div class="slider-val" id="cadenceVal">172</div>
+            <div class="slider-val slider-val--spm" id="cadenceVal">172</div>
           </div>
           <div class="slider-line">
             <span class="slider-line-label">음량</span>
@@ -776,7 +752,7 @@ input[type=range]::-moz-range-thumb {
     </div>
 
     <!-- 스크롤 여유 공간 -->
-    <div style="height:8px;"></div>
+    <div style="height:4px;"></div>
   </div><!-- .setup-body -->
 
   <!-- ─ 시작 버튼 (sticky) ─ -->
