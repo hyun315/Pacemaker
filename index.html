@@ -8,37 +8,35 @@
 <title>PACE ONE</title>
 <style>
 /* ═══════════════════════════════════════
-   PACE ONE — DESIGN SYSTEM v2
-   Premium running performance UI
+   PACE ONE — DESIGN SYSTEM v5
+   Sporty athletic dark · lime accent
 ═══════════════════════════════════════ */
 :root {
-  /* Colors */
-  --bg:         #0b0d11;
-  --bg2:        #0f1118;
-  --surface:    #141720;
-  --surface2:   #1a1e2a;
-  --border:     #1f2330;
-  --border2:    #2a3040;
-  --lime:       #c8f500;
-  --lime-dim:   #3d4a00;
-  --lime-glow:  rgba(200,245,0,.12);
+  --bg:         #08090b;
+  --bg2:        #0e1013;
+  --surface:    #15171b;
+  --surface2:   #1c1f24;
+  --border:     #22252b;
+  --border2:    #2f333a;
+  --lime:       #c8ff00;
+  --lime2:      #a6e000;
+  --lime-dim:   #3a4a00;
+  --lime-glow:  rgba(200,255,0,.14);
   --orange:     #ff6b35;
   --orange-dim: rgba(255,107,53,.15);
   --red:        #ff3b3b;
   --blue:       #4da8ff;
   --blue-dim:   rgba(77,168,255,.15);
-  --text:       #eef0f4;
-  --text2:      #b0b8c8;
-  --sub:        #606878;
+  --text:       #ffffff;
+  --text2:      #a9adb5;
+  --sub:        #6b7079;
   --mono:       'SF Mono','Roboto Mono','Menlo',monospace;
 
-  /* Spacing / radius */
-  --r-sm:   10px;
-  --r-md:   14px;
-  --r-lg:   20px;
+  --r-sm:   12px;
+  --r-md:   16px;
+  --r-lg:   22px;
   --px:     20px;
 
-  /* Safe area */
   --safe-top: env(safe-area-inset-top,  0px);
   --safe-bot: env(safe-area-inset-bottom, 0px);
 }
@@ -49,11 +47,12 @@ html, body { height: 100%; margin: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
 }
-button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; padding: 0; }
+svg { display: block; }
 
 /* ─── SCREENS ─── */
 .screen {
@@ -67,143 +66,167 @@ button { cursor: pointer; border: none; background: none; font: inherit; color: 
 .screen.active { display: flex; }
 
 /* ════════════════════════════════
-   TOPBAR
+   TOPBAR / BRAND
 ════════════════════════════════ */
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px var(--px);
+  padding: 14px var(--px) 8px;
   position: relative;
+  z-index: 2;
 }
+.brand-block { display: flex; flex-direction: column; gap: 4px; }
+.brand-logo  { display: flex; align-items: center; gap: 8px; }
+.brand-p-icon { width: 30px; height: 30px; flex-shrink: 0; }
 .brand {
-  font-family: var(--mono);
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: .18em;
-  color: var(--lime);
+  font-weight: 900;
+  font-style: italic;
+  letter-spacing: .08em;
+  color: var(--text);
+  text-transform: uppercase;
+  line-height: 1;
+}
+.brand-tagline {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .16em;
+  color: var(--text2);
   text-transform: uppercase;
 }
+.topbar-right { display: flex; align-items: center; gap: 8px; }
 .gps-badge {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
+  gap: 7px;
+  padding: 8px 14px;
   border-radius: 20px;
   border: 1px solid var(--border2);
-  background: var(--surface);
-  font-family: var(--mono);
-  font-size: 13px;
-  color: var(--sub);
-  text-transform: uppercase;
-  letter-spacing: .05em;
+  background: rgba(21,23,27,.8);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text2);
 }
-.gps-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--sub);
-  flex-shrink: 0;
-}
-.gps-dot.ok   { background: var(--lime); box-shadow: 0 0 5px var(--lime); animation: blink 2.5s ease-in-out infinite; }
+.gps-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sub); flex-shrink: 0; }
+.gps-dot.ok   { background: var(--lime); box-shadow: 0 0 6px var(--lime); animation: blink 2.5s ease-in-out infinite; }
 .gps-dot.warn { background: var(--orange); }
 .gps-dot.bad  { background: var(--red); }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
 
 /* ════════════════════════════════
-   SHARED — CUSTOM TOGGLE
+   SHARED — TOGGLE
 ════════════════════════════════ */
 .toggle {
   position: relative;
-  width: 58px; height: 34px;
-  border-radius: 17px;
+  width: 60px; height: 36px;
+  border-radius: 18px;
   background: var(--surface2);
   border: 1.5px solid var(--border2);
   cursor: pointer;
-  transition: background .22s, border-color .22s;
+  transition: background .22s, border-color .22s, box-shadow .22s;
   flex-shrink: 0;
 }
-.toggle.on { background: #1e3300; border-color: var(--lime-dim); }
+.toggle.on {
+  background: #26330a;
+  border-color: #5c7a00;
+  box-shadow: 0 0 14px rgba(200,255,0,.18);
+}
 .toggle::after {
   content: '';
   position: absolute;
   top: 4px; left: 4px;
-  width: 24px; height: 24px;
+  width: 25px; height: 25px;
   border-radius: 50%;
-  background: var(--sub);
-  box-shadow: 0 1px 3px rgba(0,0,0,.4);
+  background: #8a8f98;
+  box-shadow: 0 1px 4px rgba(0,0,0,.5);
   transition: transform .22s cubic-bezier(.34,1.3,.64,1), background .22s;
 }
 .toggle.on::after { transform: translateX(24px); background: var(--lime); }
 
 /* ════════════════════════════════
-   SHARED — CUSTOM SLIDER
+   SHARED — SLIDER (lime fill via --p)
 ════════════════════════════════ */
 input[type=range] {
   -webkit-appearance: none;
   appearance: none;
+  --p: 50%;
   width: 100%;
-  height: 36px;       /* tall hit area */
+  height: 36px;
   background: transparent;
   cursor: pointer;
   padding: 0;
   margin: 0;
   flex: 1;
+  min-width: 0;
 }
-/* WebKit track */
 input[type=range]::-webkit-slider-runnable-track {
-  height: 3px;
-  border-radius: 2px;
-  background: var(--border2);
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(to right, var(--lime) 0, var(--lime) var(--p), #2e3239 var(--p), #2e3239 100%);
 }
 input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 22px; height: 22px;
+  width: 24px; height: 24px;
   border-radius: 50%;
-  background: var(--lime);
-  margin-top: -9.5px;
-  box-shadow: 0 0 0 3px var(--lime-glow), 0 2px 6px rgba(0,0,0,.5);
+  background: #fff;
+  margin-top: -9px;
+  box-shadow: 0 0 0 4px rgba(200,255,0,.18), 0 2px 8px rgba(0,0,0,.6);
   transition: transform .12s;
 }
-input[type=range]:active::-webkit-slider-thumb { transform: scale(1.15); }
-/* Firefox */
-input[type=range]::-moz-range-track {
-  height: 3px; border-radius: 2px;
-  background: var(--border2);
-}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.12); }
+input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: #2e3239; }
+input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--lime); }
 input[type=range]::-moz-range-thumb {
-  width: 22px; height: 22px;
-  border-radius: 50%; border: none;
-  background: var(--lime);
-  box-shadow: 0 2px 6px rgba(0,0,0,.5);
+  width: 24px; height: 24px; border-radius: 50%; border: none;
+  background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.6);
 }
 
 /* ════════════════════════════════
-   SHARED — VOICE PILLS
+   SHARED — PILLS (voice / distance)
 ════════════════════════════════ */
 .pills {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 6px;
+  gap: 8px;
 }
 .pill {
-  padding: 12px 6px;
-  text-align: center;
-  border-radius: var(--r-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 54px;
+  padding: 10px 6px;
+  border-radius: 16px;
   border: 1.5px solid var(--border2);
   background: var(--surface);
-  color: var(--sub);
+  color: var(--text2);
   font-size: 17px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: .15s;
   user-select: none;
+  white-space: nowrap;
 }
+.pill svg { width: 20px; height: 20px; flex-shrink: 0; }
 .pill.active {
-  background: #192600;
+  background: rgba(200,255,0,.07);
   color: var(--lime);
-  border-color: var(--lime-dim);
-  font-weight: 700;
+  border-color: var(--lime);
+  font-weight: 800;
+  box-shadow: 0 0 16px rgba(200,255,0,.12);
 }
+.voice-note {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text2);
+}
+.voice-note:empty { display: none; }
+.voice-note b { color: var(--text); font-weight: 600; }
+.voice-note.warn { color: #ffb38f; }
 
 /* ════════════════════════════════
    SETUP SCREEN
@@ -213,160 +236,230 @@ input[type=range]::-moz-range-thumb {
   -webkit-overflow-scrolling: touch;
 }
 
-/* ── PACE HERO ── */
-.pace-hero {
-  padding: 20px var(--px) 16px;
-  text-align: center;
+/* ── HERO (topbar + pace) with athlete backdrop ── */
+.hero {
   position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 70% at 85% 0%, rgba(200,255,0,.10) 0%, transparent 55%),
+    linear-gradient(180deg, #11140c 0%, var(--bg) 100%);
+  border-bottom: 1px solid var(--border);
 }
-.pace-hero::after {
-  content: '';
+.hero-runner {
   position: absolute;
-  bottom: 0; left: var(--px); right: var(--px);
-  height: 1px;
-  background: var(--border);
+  top: 54px; right: -54px;
+  width: 230px; height: 230px;
+  color: var(--lime);
+  opacity: .09;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 40%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 40%, transparent 100%);
+}
+.hero-arc {
+  position: absolute;
+  left: 50%; top: 66px;
+  width: 340px; height: 170px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pace-hero {
+  position: relative;
+  z-index: 1;
+  padding: 18px var(--px) 24px;
+  text-align: center;
 }
 .pace-hero-eyebrow {
-  font-family: var(--mono);
-  font-size: 14px;
-  letter-spacing: .16em;
-  color: var(--sub);
-  text-transform: uppercase;
-  margin-bottom: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: .02em;
+  margin-bottom: 6px;
 }
 .pace-big-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 10px;
 }
-/* Large tap zones */
 .pace-adj {
-  width: 68px; height: 68px;
+  width: 60px; height: 60px;
   display: flex; align-items: center; justify-content: center;
-  color: var(--sub);
-  font-size: 32px;
-  font-weight: 300;
+  color: var(--text);
   user-select: none;
   border-radius: 50%;
-  transition: color .1s, background .1s;
+  background: rgba(28,31,36,.85);
+  border: 1.5px solid var(--border2);
+  flex-shrink: 0;
+  transition: color .1s, background .1s, border-color .1s, transform .1s;
 }
-.pace-adj:active { color: var(--lime); background: var(--lime-glow); }
+.pace-adj svg { width: 24px; height: 24px; }
+.pace-adj:active { color: var(--lime); border-color: var(--lime); transform: scale(.94); }
 .pace-display {
-  font-family: var(--mono);
-  font-size: 82px;
-  font-weight: 800;
-  letter-spacing: -3px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-size: 88px;
+  font-weight: 900;
+  font-style: italic;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -2px;
   color: var(--lime);
   line-height: 1;
-  min-width: 148px;
+  min-width: 190px;
   text-align: center;
+  text-shadow: 0 0 36px rgba(200,255,0,.30);
 }
 .pace-hero-unit {
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 19px;
+  font-weight: 500;
   color: var(--text2);
-  letter-spacing: .03em;
 }
-.pace-hero-unit span { color: var(--text); font-weight: 500; }
 
 /* ── SETTINGS BODY ── */
-.setup-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
+.setup-body { flex: 1; display: flex; flex-direction: column; }
 
-/* ── SECTION ── */
 .s-section {
-  padding: 18px var(--px);
-  position: relative;
+  padding: 20px var(--px);
+  border-bottom: 1px solid var(--border);
 }
-.s-section + .s-section::before {
-  content: '';
-  position: absolute;
-  top: 0; left: var(--px); right: var(--px);
-  height: 1px;
-  background: var(--border);
-}
+.s-section:last-child { border-bottom: none; }
 
-/* Row with label + toggle */
 .s-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
+  gap: 12px;
 }
+.s-icon {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  color: var(--sub);
+  transition: color .2s;
+}
+.s-icon svg { width: 28px; height: 28px; }
+.s-section:has(.toggle.on) .s-icon { color: var(--lime); }
 .s-label-group { flex: 1; min-width: 0; }
 .s-label {
   font-size: 20px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
   margin-bottom: 4px;
+  line-height: 1.25;
 }
 .s-desc {
   font-size: 15px;
   color: var(--text2);
-  line-height: 1.4;
+  line-height: 1.45;
+  word-break: keep-all;
 }
+.s-content { margin-top: 16px; }
 
-/* Inline content below a row */
-.s-content { margin-top: 14px; }
+/* Inner card (cadence block) */
+.inner-card {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: var(--r-md);
+  padding: 16px 16px 12px;
+}
+.inner-divider { height: 1px; background: var(--border2); margin: 12px -16px; }
 
-/* Slider pair */
-.slider-pair {
+/* Cadence */
+.cadence-display-row {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
+.cadence-main { display: flex; align-items: baseline; gap: 8px; }
+.cadence-label-small { font-size: 15px; font-weight: 600; color: var(--text2); }
+.cadence-big {
+  font-size: 40px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  line-height: 1;
+}
+.cadence-spm { font-size: 16px; color: var(--text2); }
+.cadence-beat {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 15px; font-weight: 600;
+  color: var(--sub);
+}
+.cadence-beat svg { width: 22px; height: 22px; }
+.s-section:has(#metroToggle.on) .cadence-beat { color: var(--lime); }
+
+.slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -2px;
+  font-size: 14px;
+  color: var(--sub);
+}
+
+/* Generic slider row */
 .slider-line {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 .slider-line-label {
-  font-size: 14px;
-  color: var(--sub);
-  width: 36px;
-  flex-shrink: 0;
-  letter-spacing: .02em;
-  font-family: var(--mono);
-}
-.slider-val {
-  font-family: var(--mono);
-  font-size: 15px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 16px;
+  font-weight: 600;
   color: var(--text2);
-  width: 62px;
+  flex-shrink: 0;
+  min-width: 44px;
+}
+.slider-line-label svg { width: 20px; height: 20px; }
+.slider-val {
+  font-size: 16px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  min-width: 58px;
   text-align: right;
   flex-shrink: 0;
 }
-/* Cadence SPM value — prominent */
-.slider-val--spm {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--text);
-  width: 72px;
+
+/* Distance segmented chips */
+.seg {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  padding: 4px;
+  border-radius: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border2);
+}
+.seg-btn {
+  padding: 9px 0;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text2);
+  text-align: center;
+  border: 1.5px solid transparent;
+  transition: .15s;
+}
+.seg-btn.active {
+  color: var(--lime);
+  border-color: var(--lime);
+  background: rgba(200,255,0,.07);
+  font-weight: 800;
 }
 
-/* Command chips */
-.cmd-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 10px;
-}
+/* Voice command chips */
+.cmd-chips { display: flex; flex-wrap: wrap; gap: 8px; }
 .chip {
-  font-family: var(--mono);
-  font-size: 14px;
+  font-size: 15px;
+  font-weight: 600;
   background: var(--surface);
   border: 1px solid var(--border2);
   color: var(--text2);
-  border-radius: 8px;
-  padding: 6px 12px;
-  letter-spacing: .01em;
+  border-radius: 10px;
+  padding: 7px 12px;
 }
-
-/* Recog status note */
 .recog-note {
   font-size: 15px;
   color: var(--text2);
@@ -378,31 +471,37 @@ input[type=range]::-moz-range-thumb {
   margin-top: 10px;
 }
 .recog-note strong { color: var(--text); }
+.cmd-log { font-size: 14px; color: var(--text2); margin-top: 6px; }
+.cmd-log:empty { display: none; }
 
 /* ── START BUTTON ── */
 .start-wrap {
-  padding: 12px var(--px);
-  padding-bottom: max(12px, var(--safe-bot));
-  background: linear-gradient(to top, var(--bg) 60%, transparent);
+  padding: 14px var(--px);
+  padding-bottom: max(16px, var(--safe-bot));
+  background: linear-gradient(to top, var(--bg) 70%, rgba(8,9,11,0));
   position: sticky;
   bottom: 0;
+  z-index: 5;
 }
 .start-btn {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
   width: 100%;
-  padding: 20px;
-  border-radius: var(--r-lg);
-  background: var(--lime);
-  color: #080a0d;
-  font-size: 19px;
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-align: center;
-  text-transform: uppercase;
+  min-height: 64px;
+  padding: 18px;
+  border-radius: 32px;
+  background: linear-gradient(180deg, #d4ff3a 0%, var(--lime) 45%, var(--lime2) 100%);
+  color: #0a0c06;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .02em;
   transition: transform .1s, opacity .1s;
-  box-shadow: 0 0 28px rgba(200,245,0,.28), 0 2px 10px rgba(0,0,0,.4);
+  box-shadow: 0 0 30px rgba(200,255,0,.28), 0 4px 14px rgba(0,0,0,.5);
 }
-.start-btn:active { transform: scale(.97); opacity: .88; }
+.start-btn svg { width: 26px; height: 26px; }
+.start-btn:active { transform: scale(.97); opacity: .9; }
 
 /* ════════════════════════════════
    RUNNING SCREEN
@@ -635,6 +734,25 @@ input[type=range]::-moz-range-thumb {
 }
 .again-btn:active { opacity: .85; transform: scale(.97); }
 
+/* ─── v5: 러닝/결과 화면 숫자 스타일 통일 ─── */
+.curr-pace-num, .metric-v, .cadence-val-run, .result-stat-v, #runTarget {
+  font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 900;
+}
+.curr-pace-num { font-style: italic; font-size: 88px; letter-spacing: -2px; }
+.curr-pace-num.ok { text-shadow: 0 0 32px rgba(200,255,0,.28); }
+.curr-pace-label, .metric-l, .cadence-sub, .target-row-run {
+  font-family: inherit;
+  letter-spacing: .02em;
+}
+.curr-pace-label { font-size: 16px; font-weight: 700; color: var(--text2); }
+.metric-l, .cadence-sub { font-size: 13px; color: var(--text2); text-transform: none; }
+.target-row-run { font-size: 16px; color: var(--text2); }
+.pace-block { background: linear-gradient(180deg, #13160e 0%, var(--surface) 100%); }
+.ctrl-btn, .again-btn { border-radius: 32px; }
+.again-btn { background: linear-gradient(180deg, #d4ff3a 0%, var(--lime) 45%, var(--lime2) 100%); font-size: 18px; }
+
 /* ─── LEGACY COMPAT ─── */
 .mt4 { margin-top: 4px; }
 .sub-text { font-size: 11.5px; color: var(--sub); line-height: 1.5; margin-top: 6px; }
@@ -646,23 +764,56 @@ input[type=range]::-moz-range-thumb {
      SETUP SCREEN
 ══════════════════════════════ -->
 <div class="screen active" id="screen-setup">
-  <div class="topbar">
-    <div class="brand">PACE ONE</div>
-    <div class="gps-badge">
-      <div class="gps-dot" id="gpsDot"></div>
-      <span id="gpsLabel">GPS 대기</span>
-    </div>
-  </div>
 
-  <!-- ─ 목표 페이스 HERO ─ -->
-  <div class="pace-hero">
-    <div class="pace-hero-eyebrow">목표 페이스</div>
-    <div class="pace-big-row">
-      <button class="pace-adj" id="paceDown">−</button>
-      <div class="pace-display" id="setupPace">5:30</div>
-      <button class="pace-adj" id="paceUp">+</button>
+  <!-- ─ HERO: brand + target pace ─ -->
+  <div class="hero">
+    <svg class="hero-runner" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>
+    <svg class="hero-arc" viewBox="0 0 340 170" fill="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="arcGrad" x1="0" y1="0" x2="340" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#c8ff00" stop-opacity="0"/>
+          <stop offset=".25" stop-color="#c8ff00" stop-opacity=".55"/>
+          <stop offset=".5" stop-color="#c8ff00" stop-opacity=".15"/>
+          <stop offset=".75" stop-color="#c8ff00" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#c8ff00" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <path d="M10 168 A160 160 0 0 1 330 168" stroke="url(#arcGrad)" stroke-width="2"/>
+    </svg>
+
+    <div class="topbar">
+      <div class="brand-block">
+        <div class="brand-logo">
+          <svg class="brand-p-icon" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+            <g transform="skewX(-14) translate(5 0)">
+              <path d="M6 26 L6 5 L17 5 Q25 5 25 12 Q25 19 17 19 L10 19" stroke="#c8ff00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+          </svg>
+          <span class="brand">PACE ONE</span>
+        </div>
+        <div class="brand-tagline">Run smarter. Go further.</div>
+      </div>
+      <div class="topbar-right">
+        <div class="gps-badge">
+          <div class="gps-dot" id="gpsDot"></div>
+          <span id="gpsLabel">GPS 대기</span>
+        </div>
+      </div>
     </div>
-    <div class="pace-hero-unit"><span>분 / km</span> &nbsp;·&nbsp; 10초 단위</div>
+
+    <div class="pace-hero">
+      <div class="pace-hero-eyebrow">목표 페이스</div>
+      <div class="pace-big-row">
+        <button class="pace-adj" id="paceDown" aria-label="페이스 10초 줄이기">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M5 12 H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+        <div class="pace-display" id="setupPace">5:30</div>
+        <button class="pace-adj" id="paceUp" aria-label="페이스 10초 늘리기">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 5 V19 M5 12 H19" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      <div class="pace-hero-unit">분 / km</div>
+    </div>
   </div>
 
   <div class="setup-body">
@@ -670,63 +821,92 @@ input[type=range]::-moz-range-thumb {
     <!-- ─ 음성 코치 ─ -->
     <div class="s-section">
       <div class="s-row">
+        <div class="s-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 10v4M7 7v10M11 4v16M15 8v8M19 6v12M23 10v4"/></svg>
+        </div>
         <div class="s-label-group">
           <div class="s-label">음성 코치</div>
-          <div class="s-desc">페이스 코칭 및 구간 안내</div>
+          <div class="s-desc">달리면서 실시간으로 코칭해드립니다.</div>
         </div>
-        <div class="toggle on" id="voiceToggle"></div>
+        <div class="toggle on" id="voiceToggle" role="switch" aria-label="음성 코치"></div>
       </div>
       <div class="s-content">
         <div class="pills">
-          <div class="pill active" data-voice="female">여성</div>
-          <div class="pill" data-voice="male">남성</div>
-          <div class="pill" data-voice="min">최소 안내</div>
+          <div class="pill active" data-voice="female">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M7.5 10.5 Q6.5 4 12 3.5 Q17.5 4 16.5 10.5"/><path d="M4.5 21 Q5 15.5 12 15.5 Q19 15.5 19.5 21"/></svg>
+            여성
+          </div>
+          <div class="pill" data-voice="male">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4.5 21 Q5 15 12 15 Q19 15 19.5 21"/></svg>
+            남성
+          </div>
+          <div class="pill" data-voice="min">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h3l5-4v14l-5-4H4z"/><path d="M16 9l5 6M21 9l-5 6"/></svg>
+            최소 안내
+          </div>
         </div>
+        <div class="voice-note" id="voiceNote"></div>
       </div>
     </div>
 
     <!-- ─ 음성 명령 ─ -->
     <div class="s-section">
       <div class="s-row">
+        <div class="s-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11 a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5 V21.5 M8.5 21.5 H15.5"/></svg>
+        </div>
         <div class="s-label-group">
           <div class="s-label">음성 명령 인식</div>
-          <div class="s-desc">화면 켜진 상태에서만 동작</div>
+          <div class="s-desc">"빨리", "느리게" 같은 말로 목표를 바꿉니다. 화면이 켜져 있을 때만 동작해요.</div>
         </div>
-        <div class="toggle" id="listenToggle"></div>
+        <div class="toggle" id="listenToggle" role="switch" aria-label="음성 명령 인식"></div>
       </div>
       <div class="s-content">
         <div class="cmd-chips">
           <span class="chip">빨리</span>
           <span class="chip">느리게</span>
-          <span class="chip">5분 페이스</span>
+          <span class="chip">5분 30초</span>
           <span class="chip">케이던스 180</span>
         </div>
-        <div class="recog-note" id="recogStatus">
-          <strong>꺼짐</strong> — 배경 음성 인식은 지원되지 않습니다
-        </div>
-        <div style="font-family:var(--mono);font-size:10px;color:var(--sub);min-height:0;margin-top:4px;" id="cmdLog"></div>
+        <div class="recog-note" id="recogStatus"><strong>꺼짐</strong></div>
+        <div class="cmd-log" id="cmdLog"></div>
       </div>
     </div>
 
     <!-- ─ 메트로놈 케이던스 ─ -->
     <div class="s-section">
       <div class="s-row">
-        <div class="s-label-group">
-          <div class="s-label">메트로놈</div>
-          <div class="s-desc">케이던스 박자음</div>
+        <div class="s-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 17.5 V12.5 L6.5 6 L9 8 L10.5 10 Q14 11 16 12 Q21 13 22 15.5 V17.5 Z"/><path d="M2 17.5 H22"/><path d="M10.5 10 L9 12.5 M13 11 L11.8 13.3"/></svg>
         </div>
-        <div class="toggle" id="metroToggle"></div>
+        <div class="s-label-group">
+          <div class="s-label">메트로놈 케이던스</div>
+          <div class="s-desc">일정한 박자로 발걸음을 유도합니다.</div>
+        </div>
+        <div class="toggle" id="metroToggle" role="switch" aria-label="메트로놈"></div>
       </div>
       <div class="s-content">
-        <div class="slider-pair">
-          <div class="slider-line">
-            <span class="slider-line-label">SPM</span>
-            <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1">
-            <div class="slider-val slider-val--spm" id="cadenceVal">172</div>
+        <div class="inner-card">
+          <div class="cadence-display-row">
+            <div class="cadence-main">
+              <span class="cadence-label-small">케이던스</span>
+              <span class="cadence-big" id="cadenceVal">172</span>
+              <span class="cadence-spm">spm</span>
+            </div>
+            <div class="cadence-beat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 8v8M20 10v4"/></svg>
+              <span id="cadenceVal2">분당 172보</span>
+            </div>
           </div>
+          <input type="range" id="cadenceSlider" min="140" max="200" value="172" step="1" aria-label="케이던스">
+          <div class="slider-labels"><span>느리게</span><span>빠르게</span></div>
+          <div class="inner-divider"></div>
           <div class="slider-line">
-            <span class="slider-line-label">음량</span>
-            <input type="range" id="metroVol" min="0" max="100" value="50" step="5">
+            <span class="slider-line-label">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h3l5-4v14l-5-4H4z"/><path d="M15.5 9.5 a3.5 3.5 0 0 1 0 5"/><path d="M18 7 a7 7 0 0 1 0 10"/></svg>
+              음량
+            </span>
+            <input type="range" id="metroVol" min="0" max="100" value="50" step="5" aria-label="메트로놈 음량">
             <div class="slider-val" id="metroVolVal">50%</div>
           </div>
         </div>
@@ -736,28 +916,44 @@ input[type=range]::-moz-range-thumb {
     <!-- ─ 응원 보이스 ─ -->
     <div class="s-section">
       <div class="s-row">
+        <div class="s-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M12 2.8 L14.8 8.7 L21.2 9.5 L16.5 13.9 L17.7 20.3 L12 17.2 L6.3 20.3 L7.5 13.9 L2.8 9.5 L9.2 8.7 Z"/></svg>
+        </div>
         <div class="s-label-group">
           <div class="s-label">응원 보이스</div>
-          <div class="s-desc">주기적 응원 · km 마일스톤 알림</div>
+          <div class="s-desc">달리며 힘이 되는 응원을 들려드립니다.</div>
         </div>
-        <div class="toggle on" id="cheerToggle"></div>
+        <div class="toggle on" id="cheerToggle" role="switch" aria-label="응원 보이스"></div>
       </div>
       <div class="s-content">
         <div class="slider-line">
           <span class="slider-line-label">빈도</span>
-          <input type="range" id="cheerFreq" min="15" max="90" value="40" step="5">
-          <div class="slider-val" id="cheerFreqVal">~40초</div>
+          <input type="range" id="cheerFreq" min="15" max="90" value="40" step="5" aria-label="응원 빈도">
+          <div class="slider-val" id="cheerFreqVal">약 40초</div>
+        </div>
+        <div class="slider-line" style="margin-top:12px;">
+          <span class="slider-line-label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 Q5 14 5 9.5 a7 7 0 0 1 14 0 Q19 14 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            거리
+          </span>
+          <div class="seg" id="mileSeg">
+            <button class="seg-btn active" data-mile="1">1km</button>
+            <button class="seg-btn" data-mile="2">2km</button>
+            <button class="seg-btn" data-mile="5">5km</button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- 스크롤 여유 공간 -->
-    <div style="height:4px;"></div>
   </div><!-- .setup-body -->
 
   <!-- ─ 시작 버튼 (sticky) ─ -->
   <div class="start-wrap">
-    <button class="start-btn" id="startBtn">러닝 시작</button>
+    <button class="start-btn" id="startBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>
+      러닝 시작
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:22px;height:22px"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
+    </button>
   </div>
 </div><!-- #screen-setup -->
 
@@ -767,10 +963,21 @@ input[type=range]::-moz-range-thumb {
 ══════════════════════════════ -->
 <div class="screen" id="screen-run">
   <div class="topbar">
-    <div class="brand">PACE ONE</div>
-    <div class="gps-badge">
-      <div class="gps-dot" id="runGpsDot"></div>
-      <span id="runGpsLabel">GPS 연결됨</span>
+    <div class="brand-block">
+      <div class="brand-logo">
+        <svg class="brand-p-icon" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+          <g transform="skewX(-14) translate(5 0)">
+            <path d="M6 26 L6 5 L17 5 Q25 5 25 12 Q25 19 17 19 L10 19" stroke="#c8ff00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+        </svg>
+        <span class="brand">PACE ONE</span>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="gps-badge">
+        <div class="gps-dot" id="runGpsDot"></div>
+        <span id="runGpsLabel">GPS 연결됨</span>
+      </div>
     </div>
   </div>
 
@@ -839,7 +1046,16 @@ input[type=range]::-moz-range-thumb {
 ══════════════════════════════ -->
 <div class="screen" id="screen-result">
   <div class="topbar">
-    <div class="brand">PACE ONE</div>
+    <div class="brand-block">
+      <div class="brand-logo">
+        <svg class="brand-p-icon" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+          <g transform="skewX(-14) translate(5 0)">
+            <path d="M6 26 L6 5 L17 5 Q25 5 25 12 Q25 19 17 19 L10 19" stroke="#c8ff00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </g>
+        </svg>
+        <span class="brand">PACE ONE</span>
+      </div>
+    </div>
     <div style="font-family:var(--mono);font-size:11px;color:var(--sub);">결과</div>
   </div>
   <div class="result-body">
@@ -1025,26 +1241,49 @@ document.querySelectorAll('.pill[data-voice]').forEach(p => {
     document.querySelectorAll('.pill[data-voice]').forEach(x => x.classList.remove('active'));
     p.classList.add('active');
     voiceGender = p.dataset.voice;
+    updateVoiceNote();
     enqueue('voice_test', voiceGender === 'min' ? '최소 안내 모드입니다' : `${voiceGender === 'male' ? '남성' : '여성'} 목소리입니다`, 1);
   };
 });
 
-$('cadenceSlider').oninput = e => {
-  cadence = +e.target.value;
+// 슬라이더 채움(라임) 표시
+function paintRange(el) {
+  const min = +el.min || 0, max = +el.max || 100;
+  el.style.setProperty('--p', ((+el.value - min) / (max - min) * 100) + '%');
+}
+document.querySelectorAll('input[type=range]').forEach(paintRange);
+
+function setCadence(v) {
+  cadence = Math.max(140, Math.min(200, Math.round(v)));
+  $('cadenceSlider').value = cadence;
+  paintRange($('cadenceSlider'));
   $('cadenceVal').textContent = cadence;
-  if ($('cadenceVal2')) $('cadenceVal2').textContent = cadence;
+  if ($('cadenceVal2')) $('cadenceVal2').textContent = '분당 ' + cadence + '보';
   $('runCadence').textContent = cadence;
   if (metroOn) startMetronome();
-};
+}
+$('cadenceSlider').oninput = e => setCadence(+e.target.value);
 $('metroVol').oninput = e => {
+  paintRange(e.target);
   metroVolPct = +e.target.value;
   $('metroVolVal').textContent = metroVolPct + '%';
   if (metroGain) metroGain.gain.value = metroVolPct / 100 * 0.35;
 };
 $('cheerFreq').oninput = e => {
+  paintRange(e.target);
   cheerIntervalSec = +e.target.value;
-  $('cheerFreqVal').textContent = '~' + cheerIntervalSec + '초';
+  $('cheerFreqVal').textContent = '약 ' + cheerIntervalSec + '초';
 };
+
+// 거리 알림 간격 (1 / 2 / 5 km)
+let milestoneStepKm = 1;
+document.querySelectorAll('#mileSeg .seg-btn').forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll('#mileSeg .seg-btn').forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+    milestoneStepKm = +b.dataset.mile;
+  };
+});
 
 /* ───────────────────────────
    VOICE — QUEUE
@@ -1075,11 +1314,11 @@ function speakNow(text) {
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = 'ko-KR';
-    u.rate = voiceGender === 'male' ? 0.95 : 1.0;
-    u.pitch = voiceGender === 'male' ? 0.82 : 1.05;
-    const v = pickVoice();
-    if (v) u.voice = v;
+    const sel = pickVoice();
+    if (sel.voice) { u.voice = sel.voice; u.lang = sel.voice.lang; }
+    else u.lang = 'ko-KR';
+    u.rate  = sel.rate;
+    u.pitch = sel.pitch;
     u.onend = () => { isSpeaking = false; drainQueue(); };
     u.onerror = () => { isSpeaking = false; drainQueue(); };
     speechSynthesis.speak(u);
@@ -1089,18 +1328,73 @@ function speakNow(text) {
     isSpeaking = false;
   }
 }
-function pickVoice() {
-  const all = speechSynthesis.getVoices();
-  const ko = all.filter(v => v.lang && v.lang.toLowerCase().startsWith('ko'));
-  const pool = ko.length ? ko : all;
-  if (voiceGender === 'male') {
-    const h = ['male','man','Daniel','David','Alex','민준'];
-    return pool.find(v => h.some(k => v.name.includes(k))) || pool[Math.min(1, pool.length - 1)];
-  }
-  const h = ['female','woman','Yuna','Sora','유나','지민','수정','Samantha'];
-  return pool.find(v => h.some(k => v.name.includes(k))) || pool[0] || null;
+/*
+  한국어 음성 성별 판별
+  - 기존 버그: 'male' 키워드를 includes()로 찾아서 "Female"도 남성으로 잡혔고,
+    남성 음성이 없으면 pool[1](대개 여성 Yuna)을 그대로 써서 여성 목소리가 나왔음.
+  - 이름 기반 판별 + 남성 음성이 없을 땐 여성 음성을 낮은 톤으로 대체하고 화면에 안내.
+*/
+const KO_MALE_NAMES = [
+  'minsu','minsang','jinho','junho','hyunsu','injoon','bongjin','gookmin','seojun',
+  '민수','민상','진호','준호','현수','인준','봉진','국민','남성','남자',
+  'ko-kr-x-jmh','ko-kr-x-koc',  // Android Google TTS 남성 계열
+];
+const KO_FEMALE_NAMES = [
+  'yuna','sora','suhyun','sunhi','jimin','seohyeon','soonbok','yujin','heami','google 한국',
+  '유나','소라','수현','선희','지민','서현','순복','유진','혜미','여성','여자',
+  'ko-kr-x-ism','ko-kr-x-kob',
+];
+function voiceGenderOf(v) {
+  const n = (v.name + ' ' + (v.voiceURI || '')).toLowerCase();
+  if (/\bfemale\b|woman/.test(n)) return 'female';
+  if (/\bmale\b|\bman\b/.test(n)) return 'male';
+  if (KO_MALE_NAMES.some(k => n.includes(k))) return 'male';
+  if (KO_FEMALE_NAMES.some(k => n.includes(k))) return 'female';
+  return 'unknown';
 }
-if ('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = () => {};
+let koVoices = [];
+function loadVoices() {
+  const all = speechSynthesis.getVoices() || [];
+  koVoices = all.filter(v => v.lang && v.lang.toLowerCase().replace('_', '-').startsWith('ko'));
+  // 품질 좋은 음성 우선 (Premium/Enhanced/Neural, 로컬)
+  const q = v => (/premium|enhanced|neural|natural|고품질/i.test(v.name) ? 2 : 0) + (v.localService ? 1 : 0);
+  koVoices.sort((a, b) => q(b) - q(a));
+  updateVoiceNote();
+}
+function pickVoice() {
+  if (!koVoices.length) loadVoices();
+  const female = koVoices.filter(v => voiceGenderOf(v) === 'female');
+  const male   = koVoices.filter(v => voiceGenderOf(v) === 'male');
+  const other  = koVoices.filter(v => voiceGenderOf(v) === 'unknown');
+  if (voiceGender === 'male') {
+    if (male.length) return { voice: male[0], pitch: 1.0, rate: 1.0, fallback: false };
+    // 남성 음성 없음 → 다른 음성을 낮은 톤으로 대체
+    if (other.length) return { voice: other[0], pitch: 0.8, rate: 0.97, fallback: true };
+    return { voice: female[0] || koVoices[0] || null, pitch: 0.55, rate: 0.95, fallback: true };
+  }
+  const base = female[0] || other[0] || koVoices[0] || null;
+  return { voice: base, pitch: 1.0, rate: 1.0, fallback: false };
+}
+function updateVoiceNote() {
+  const el = $('voiceNote');
+  if (!el) return;
+  if (voiceGender === 'min') { el.className = 'voice-note'; el.innerHTML = '페이스 코칭과 경고만 안내하고, 응원은 생략합니다.'; return; }
+  if (!koVoices.length) { el.className = 'voice-note'; el.textContent = ''; return; }
+  const sel = pickVoice();
+  const name = sel.voice ? sel.voice.name.replace(/\s*\(.*\)$/, '') : '기본 음성';
+  if (sel.fallback) {
+    el.className = 'voice-note warn';
+    el.innerHTML = '이 기기에 한국어 <b>남성 음성</b>이 없어 낮은 톤으로 대신 읽어요.<br>' +
+      '아이폰: 설정 › 손쉬운 사용 › 읽기 및 말하기 › 음성 › 한국어에서 남성 음성을 내려받은 뒤 앱을 다시 열면 적용됩니다.';
+  } else {
+    el.className = 'voice-note';
+    el.innerHTML = '사용 중인 음성: <b>' + name + '</b>';
+  }
+}
+loadVoices();
+if ('onvoiceschanged' in speechSynthesis) speechSynthesis.onvoiceschanged = loadVoices;
+// iOS는 voiceschanged가 늦거나 안 오는 경우가 있어 몇 번 더 확인
+[300, 1000, 2500].forEach(t => setTimeout(() => { if (!koVoices.length) loadVoices(); }, t));
 
 /* ───────────────────────────
    GPS
@@ -1325,7 +1619,7 @@ function scheduleCheer() {
 }
 function checkMilestone() {
   if (!cheerOn || !running || paused) return;
-  const km = Math.floor(totalDistanceM / 1000);
+  const km = Math.floor(totalDistanceM / 1000 / milestoneStepKm) * milestoneStepKm;
   if (km > lastMilestoneKm && km > 0) {
     lastMilestoneKm = km;
     const msgs = [
@@ -1388,9 +1682,10 @@ function setupRecognition() {
   recognition.interimResults = false;
   recognition.onresult = e => {
     const text = e.results[e.results.length - 1][0].transcript.trim();
-    $('cmdLog').innerHTML = '들음: <b>"' + text + '"</b>';
+    $('cmdLog').textContent = '들음: "' + text + '"';
     handleCmd(text);
   };
+  recognition.onstart = () => { $('recogStatus').textContent = '듣는 중… 화면을 켜 두세요'; };
   recognition.onerror = e => { $('recogStatus').textContent = '인식 오류: ' + e.error; };
   recognition.onend = () => { if (listening) { try { recognition.start(); } catch(e){} } };
 }
@@ -1399,29 +1694,25 @@ function handleCmd(text) {
   if (/빨리|더\s*빠르게/.test(text)) {
     targetPaceSec = Math.max(180, targetPaceSec - 15);
     updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
-    enqueue('cmd', '목표 페이스를 ' + speakPace(targetPaceSec) + '로 올렸어요', 0);
+    enqueue('cmd', '좀 더 빠르게. 목표 페이스, ' + speakPace(targetPaceSec) + '입니다', 0);
   } else if (/느리게|천천히/.test(text)) {
     targetPaceSec = Math.min(720, targetPaceSec + 15);
     updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
-    enqueue('cmd', '목표 페이스를 ' + speakPace(targetPaceSec) + '로 낮췄어요', 0);
+    enqueue('cmd', '조금 천천히. 목표 페이스, ' + speakPace(targetPaceSec) + '입니다', 0);
   } else if (/케이던스/.test(text)) {
     const m = text.match(/케이던스\D*(\d{2,3})/);
     if (m) {
-      cadence = Math.max(140, Math.min(200, +m[1]));
-      $('cadenceSlider').value = cadence;
-      $('cadenceVal').textContent = cadence + ' spm';
-      $('runCadence').textContent = cadence;
-      if (metroOn) startMetronome();
-      enqueue('cmd', '케이던스 ' + cadence + '으로 설정했어요', 0);
+      setCadence(+m[1]);
+      enqueue('cmd', '케이던스, 분당 ' + cadence + '보에 맞췄어요', 0);
     }
   } else {
     const m = text.match(/(\d+)\s*분(?:\s*(\d+)\s*초)?/);
     if (m) {
       targetPaceSec = Math.min(720, Math.max(120, +m[1] * 60 + (+m[2] || 0)));
       updateSetupPace(); $('runTarget').textContent = fmtPace(targetPaceSec);
-      enqueue('cmd', '목표 페이스 ' + speakPace(targetPaceSec) + '로 변경했어요', 0);
+      enqueue('cmd', '목표 페이스를 ' + speakPace(targetPaceSec) + '에 맞췄어요', 0);
     } else {
-      $('cmdLog').innerHTML += ' — 명령을 이해하지 못했어요';
+      $('cmdLog').textContent += ' — 명령을 이해하지 못했어요';
     }
   }
 }
