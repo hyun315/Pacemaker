@@ -256,10 +256,8 @@ input[type=range]::-moz-range-thumb {
 /* ════════════════════════════════
    SETUP SCREEN
 ════════════════════════════════ */
-#screen-setup {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-}
+/* 문서 자체가 스크롤되게 둬야 하단 시작 버튼(sticky)이 화면 아래에 붙어 있음 */
+#screen-setup { }
 
 /* ── HERO (topbar + pace) with athlete backdrop ── */
 .hero {
@@ -871,6 +869,35 @@ input[type=range]::-moz-range-thumb {
 .pocket-hint { font-size: 15px; color: #5a5f66; font-weight: 600; transition: color .2s; }
 .pocket-hint.flash { color: #c9ccd1; }
 
+/* ─── 러닝 중 홈 버튼 / 러닝 복귀 ─── */
+.brand, .gps-badge { white-space: nowrap; }
+#screen-run .brand { display: none; }   /* 러닝 화면은 공간 확보: P 로고만 */
+.home-btn {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.home-btn svg { width: 22px; height: 22px; }
+.home-btn:active { color: var(--lime); border-color: var(--lime); }
+.start-btn.returning {
+  background: var(--surface);
+  color: var(--lime);
+  border: 1.5px solid var(--lime);
+  box-shadow: 0 0 22px rgba(200,255,0,.18);
+}
+.start-btn .run-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--lime); box-shadow: 0 0 8px var(--lime);
+  animation: blink 1.6s ease-in-out infinite;
+  display: none;
+}
+.start-btn.returning .run-dot { display: block; }
+.start-btn.returning svg.ic-run { display: none; }
+
 /* ─── LEGACY COMPAT ─── */
 .mt4 { margin-top: 4px; }
 .sub-text { font-size: 11.5px; color: var(--sub); line-height: 1.5; margin-top: 6px; }
@@ -1076,8 +1103,9 @@ input[type=range]::-moz-range-thumb {
   <!-- ─ 시작 버튼 (sticky) ─ -->
   <div class="start-wrap">
     <button class="start-btn" id="startBtn">
-      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>
-      러닝 시작
+      <span class="run-dot"></span>
+      <svg class="ic-run" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.49 5.48c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm-3.6 13.9l1-4.4 2.1 2v6h2v-7.5l-2.1-2 .6-3c1.3 1.5 3.3 2.5 5.5 2.5v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1l-5.2 2.2v4.7h2v-3.4l1.8-.7-1.6 8.1-4.9-1-.4 2 7 1.4z"/></svg>
+      <span id="startLabel">러닝 시작</span>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="width:22px;height:22px"><path d="M5 12 H19 M13 6 L19 12 L13 18"/></svg>
     </button>
   </div>
@@ -1100,6 +1128,9 @@ input[type=range]::-moz-range-thumb {
       </div>
     </div>
     <div class="topbar-right">
+      <button class="home-btn" id="homeBtn" aria-label="홈 화면 (러닝은 계속됩니다)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11 L12 3.5 L21 11"/><path d="M5.5 9.5 V20 H10 V14.5 H14 V20 H18.5 V9.5"/></svg>
+      </button>
       <div class="gps-badge">
         <div class="gps-dot" id="runGpsDot"></div>
         <span id="runGpsLabel">GPS 연결됨</span>
@@ -1365,6 +1396,12 @@ function elapsedSec() {
 ─────────────────────────── */
 function updateSetupPace() {
   $('setupPace').textContent = fmtPace(targetPaceSec);
+  if (running) {
+    $('runTarget').textContent = fmtPace(targetPaceSec);
+    if ('mediaSession' in navigator && navigator.mediaSession.metadata) {
+      try { navigator.mediaSession.metadata.artist = '목표 ' + fmtPace(targetPaceSec) + ' /km'; } catch (e) {}
+    }
+  }
 }
 $('paceUp').onclick   = () => { targetPaceSec = Math.min(720, targetPaceSec + 10); updateSetupPace(); };
 $('paceDown').onclick = () => { targetPaceSec = Math.max(180, targetPaceSec - 10); updateSetupPace(); };
@@ -2055,7 +2092,7 @@ function exitPocket() {
 }
 function armPocketIdle() {
   clearTimeout(pocketIdleTimer);
-  if (!running || paused || pocketOn) return;
+  if (!running || paused || pocketOn || !$('screen-run').classList.contains('active')) return;
   pocketIdleTimer = setTimeout(enterPocket, POCKET_AUTO_MS);
 }
 function syncPocket() {
@@ -2109,6 +2146,7 @@ document.addEventListener('visibilitychange', () => {
    START / PAUSE / STOP
 ─────────────────────────── */
 $('startBtn').onclick = () => {
+  if (running) { goRunScreen(); return; }   // 러닝 중 홈에서 누르면 러닝 화면으로 복귀
   if (!navigator.geolocation) {
     alert('이 기기에서 GPS를 사용할 수 없습니다');
     return;
@@ -2132,7 +2170,7 @@ function startRun() {
   watchId = navigator.geolocation.watchPosition(handlePosition, handleGpsError, {
     enableHighAccuracy: true, maximumAge: 1000, timeout: 15000
   });
-  elapsedTimer = setInterval(() => { updateRunUI(); syncPocket(); }, 1000);
+  elapsedTimer = setInterval(() => { updateRunUI(); syncPocket(); if (running) updateStartBtn(); }, 1000);
   startKeepAlive();
   keepAwake();
   armPocketIdle();
@@ -2218,7 +2256,29 @@ $('againBtn').onclick = () => showScreen('setup');
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+  updateStartBtn();
 }
+// 러닝 중 홈(설정) 화면 ↔ 러닝 화면 — 러닝·안내는 계속됨
+function goHomeDuringRun() {
+  clearTimeout(pocketIdleTimer);
+  showScreen('setup');
+}
+function goRunScreen() {
+  showScreen('run');
+  armPocketIdle();
+}
+function updateStartBtn() {
+  const btn = $('startBtn');
+  if (running) {
+    btn.classList.add('returning');
+    $('startLabel').textContent = '러닝으로 돌아가기 · ' + $('mTime').textContent;
+  } else {
+    btn.classList.remove('returning');
+    $('startLabel').textContent = '러닝 시작';
+  }
+}
+$('homeBtn').onclick = goHomeDuringRun;
 
 /* ───────────────────────────
    INIT
