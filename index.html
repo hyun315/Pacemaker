@@ -1295,16 +1295,18 @@ const CFG = {
   GPS_ACCURACY_MAX:    40,    // m — 이 이상이면 불신
   GPS_SPEED_MAX:       10,    // m/s — 36km/h 이상 점프 제거
   GPS_DIST_JUMP_MAX:   60,    // m — 한 틱에 이보다 크면 제거
-  SPEED_SAMPLES:        8,    // 이동평균 창 크기
+  SPEED_WINDOW_MS: 15000,    // 최근 15초 속도로 평균 (위·아래 극단값 1개씩 제외)
   MIN_SPEED_COACH:    0.5,    // m/s 미만이면 코치 침묵
   GPS_LOST_TIMEOUT:  8000,    // ms — 이 시간 GPS 없으면 불안정 표시
-  COACH_CONFIRM_MS:  6000,    // 상태 지속 후 코칭
+  COACH_CONFIRM_MS: 10000,    // 같은 상태가 10초 이어져야 코칭
   COACH_COOLDOWN_MS: 25000,   // 같은 방향 코칭 쿨다운
   CHEER_MIN_RUN_MS:  60000,   // 러닝 최소 1분 후 응원 시작
+  // 허용 범위는 목표 페이스에 비례 (GPS 오차는 느릴수록 페이스로 크게 보임)
+  // 예) 5:30 → ±13초 유지 / 26초+ 많이 벗어남,  10:00 → ±24초 / 48초+
   PACE_ZONE: {
-    ON_PACE:  5,   // ±5초/km 이내
-    SLIGHTLY: 10,  // 5~10초/km
-    // 10초+ = 많이 벗어남
+    ON_PCT:   0.04,  // 목표의 ±4% 이내 = 유지
+    SLIGHT_PCT: 0.08,// 4~8% = 조금, 8%+ = 많이
+    HYST_PCT: 0.01,  // 유지 상태에서 벗어날 땐 ±5%까지 봐줌 (경계에서 들락날락 방지)
   }
 };
 
@@ -1710,9 +1712,11 @@ function handlePosition(pos) {
   }
 
   if (instSpeed !== null && instSpeed < CFG.GPS_SPEED_MAX) {
-    speedSamples.push(instSpeed);
-    if (speedSamples.length > CFG.SPEED_SAMPLES) speedSamples.shift();
-    currentSpeedMps = speedSamples.reduce((a, b) => a + b, 0) / speedSamples.length;
+    speedSamples.push({ t, v: instSpeed });
+    speedSamples = speedSamples.filter(x => t - x.t <= CFG.SPEED_WINDOW_MS);
+    let vs = speedSamples.map(x => x.v).sort((a, b) => a - b);
+    if (vs.length >= 5) vs = vs.slice(1, -1);   // 튀는 값 제거
+    currentSpeedMps = vs.reduce((a, b) => a + b, 0) / vs.length;
   }
 
   lastPos = { lat: latitude, lon: longitude, t };
@@ -1767,10 +1771,13 @@ const COACH_PHRASES = {
 
 function getCoachZone(diff) {
   // diff = curPace - targetPace (양수 = 느림)
-  if (Math.abs(diff) <= CFG.PACE_ZONE.ON_PACE)  return 'on_pace';
-  if (diff >  CFG.PACE_ZONE.SLIGHTLY)             return 'much_slow';
-  if (diff >  CFG.PACE_ZONE.ON_PACE)              return 'slightly_slow';
-  if (diff < -CFG.PACE_ZONE.SLIGHTLY)             return 'much_fast';
+  const Z = CFG.PACE_ZONE;
+  const on = targetPaceSec * (Z.ON_PCT + (coachState === 'on_pace' ? Z.HYST_PCT : 0));
+  const sl = targetPaceSec * Z.SLIGHT_PCT;
+  if (Math.abs(diff) <= on) return 'on_pace';
+  if (diff >  sl)           return 'much_slow';
+  if (diff >  0)            return 'slightly_slow';
+  if (diff < -sl)           return 'much_fast';
   return 'slightly_fast';
 }
 
