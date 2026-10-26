@@ -465,6 +465,10 @@ input[type=range]::-moz-range-thumb {
   border: 1.5px solid transparent;
   transition: .15s;
 }
+.seg-5 { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.seg-5 .seg-btn { font-size: 15px; padding: 10px 0; }
+.report-block { margin-top: 18px; }
+.report-hint { margin-top: 8px; font-size: 14px; line-height: 1.5; color: var(--sub); word-break: keep-all; }
 .seg-btn.active {
   color: var(--lime);
   border-color: var(--lime);
@@ -998,6 +1002,17 @@ input[type=range]::-moz-range-thumb {
             <button class="voice-test-btn" id="voiceTestBtn">들어보기</button>
           </div>
           <div class="voice-diag" id="voiceDiag"></div>
+        </div>
+        <div class="report-block">
+          <div class="voice-pick-label">현재 페이스 읽어주기</div>
+          <div class="seg seg-5" id="reportSeg">
+            <button class="seg-btn" data-sec="0">끔</button>
+            <button class="seg-btn" data-sec="30">30초</button>
+            <button class="seg-btn active" data-sec="60">1분</button>
+            <button class="seg-btn" data-sec="120">2분</button>
+            <button class="seg-btn" data-sec="300">5분</button>
+          </div>
+          <div class="report-hint" id="reportHint">1분마다 "현재 페이스 6분 10초, 목표보다 20초 느려요"처럼 알려드려요.</div>
         </div>
       </div>
     </div>
@@ -1761,13 +1776,61 @@ function startGpsWatchdog() {
 /* ───────────────────────────
    COACHING ENGINE
 ─────────────────────────── */
-const COACH_PHRASES = {
-  on_pace:       ['좋아요. 지금 페이스 아주 좋아요.', '좋습니다. 이 리듬 그대로 가볼게요.'],
-  slightly_slow: ['조금만 속도를 올려볼게요.', '좋아요. 조금 더 가볍게 달려봐요.'],
-  much_slow:     ['페이스가 떨어졌어요. 조금 더 달려봐요.'],
-  slightly_fast: ['좋아요. 힘을 조금 아껴도 돼요.'],
-  much_fast:     ['조금 천천히 가볼까요?'],
+// 코칭 문구 뒤에 붙는 짧은 조언 (숫자 안내 뒤에 이어짐)
+const COACH_ADVICE = {
+  on_pace:       ['이 리듬 그대로 가요.', '아주 좋아요.'],
+  slightly_slow: ['조금만 속도를 올려봐요.', '조금 더 가볍게 달려봐요.'],
+  much_slow:     ['속도를 올려 주세요.'],
+  slightly_fast: ['힘을 조금 아껴도 돼요.'],
+  much_fast:     ['속도를 줄여 주세요.'],
 };
+// GPS 오차를 감안해 음성은 5초 단위로 반올림
+const round5 = sec => Math.max(5, Math.round(sec / 5) * 5);
+function speakDur(sec) {                 // 20 → "20초", 75 → "1분 15초"
+  sec = Math.round(sec);
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return m ? (s ? m + '분 ' + s + '초' : m + '분') : s + '초';
+}
+// "현재 페이스 6분 10초, 목표보다 20초 느려요." / "…, 목표 페이스 유지 중이에요."
+function paceSentence(curPaceSec, zone) {
+  const diff = curPaceSec - targetPaceSec;
+  const cur = '현재 페이스 ' + speakPace(Math.round(curPaceSec / 5) * 5);
+  if (zone === 'on_pace') return cur + ', 목표 페이스 유지 중이에요.';
+  return cur + ', 목표보다 ' + speakDur(round5(Math.abs(diff))) + (diff > 0 ? ' 느려요.' : ' 빨라요.');
+}
+// 정기 읽어주기
+let paceReportSec = 60, lastReportAt = 0, reportTimer = null;
+try { const v = localStorage.getItem('paceone.report'); if (v !== null && [0,30,60,120,300].includes(+v)) paceReportSec = +v; } catch (e) {}
+function renderReportSeg() {
+  document.querySelectorAll('#reportSeg .seg-btn').forEach(b => b.classList.toggle('active', +b.dataset.sec === paceReportSec));
+  $('reportHint').textContent = paceReportSec
+    ? (paceReportSec >= 60 ? paceReportSec / 60 + '분' : paceReportSec + '초') + '마다 "현재 페이스 6분 10초, 목표보다 20초 느려요"처럼 알려드려요.'
+    : '정기 안내는 끄고, 페이스가 벗어났을 때만 알려드려요.';
+}
+document.querySelectorAll('#reportSeg .seg-btn').forEach(b => {
+  b.onclick = () => {
+    paceReportSec = +b.dataset.sec;
+    try { localStorage.setItem('paceone.report', paceReportSec); } catch (e) {}
+    lastReportAt = Date.now();
+    renderReportSeg();
+  };
+});
+renderReportSeg();
+function paceReportTick() {
+  if (!running || paused || gpsLost || !paceReportSec) return;
+  if (currentSpeedMps < CFG.MIN_SPEED_COACH) return;
+  const now = Date.now();
+  if (now - lastReportAt < paceReportSec * 1000) return;
+  if (now - startTime < 20000) return;          // 시작 직후 GPS 안정화 대기
+  lastReportAt = now;
+  const cur = 1000 / currentSpeedMps;
+  const zone = getCoachZone(cur - targetPaceSec);
+  const msg = paceSentence(cur, zone);
+  // 정기 안내 직후 같은 내용의 코칭이 바로 이어지지 않게
+  const dir = zone === 'on_pace' ? 'ok' : zone.includes('slow') ? 'slow' : 'fast';
+  lastCoachTime[dir] = now;
+  enqueue('pace_report', msg, 1);
+}
 
 function getCoachZone(diff) {
   // diff = curPace - targetPace (양수 = 느림)
@@ -1805,7 +1868,10 @@ function coachingTick() {
 
   // 쿨다운 확인
   const direction = zone === 'on_pace' ? 'ok' : zone.includes('slow') ? 'slow' : 'fast';
-  if (now - lastCoachTime[direction] < CFG.COACH_COOLDOWN_MS) return;
+  // 같은 방향 반복 안내는 '읽어주기 간격'을 따름 (방향이 바뀌면 바로 안내)
+  //  정기 안내를 끈 경우엔 같은 경고를 1분에 한 번만 반복
+  const repeatMs = paceReportSec ? Math.max(CFG.COACH_COOLDOWN_MS, paceReportSec * 1000) : 60000;
+  if (now - lastCoachTime[direction] < repeatMs) return;
 
   // on_pace는 처음 한 번만, 이후 생략
   if (zone === 'on_pace') {
@@ -1816,8 +1882,9 @@ function coachingTick() {
   }
 
   lastCoachTime[direction] = now;
-  const phrases = COACH_PHRASES[zone];
-  const msg = phrases[Math.floor(Math.random() * phrases.length)];
+  const adv = COACH_ADVICE[zone];
+  const msg = paceSentence(curPaceSec, zone) + ' ' + adv[Math.floor(Math.random() * adv.length)];
+  lastReportAt = now;                           // 코칭 직후 정기 안내가 겹치지 않게
   enqueue('coach_' + zone, msg, 1);
   coachLog.push({ time: elapsedSec(), msg });
 }
@@ -1845,18 +1912,12 @@ function updateRunUI() {
   } else if (zone === 'on_pace') {
     sb.className = 'status-bar ok';
     stText.textContent = '✓ 목표 페이스 유지 중';
-  } else if (zone === 'slightly_slow') {
-    sb.className = 'status-bar slow';
-    stText.textContent = '▼ 조금 느림 — 속도 올려봐요';
-  } else if (zone === 'much_slow') {
-    sb.className = 'status-bar slow';
-    stText.textContent = '▼▼ 많이 느림 — 페이스 회복';
-  } else if (zone === 'slightly_fast') {
-    sb.className = 'status-bar fast';
-    stText.textContent = '▲ 조금 빠름 — 힘 아껴봐요';
   } else {
-    sb.className = 'status-bar fast';
-    stText.textContent = '▲▲ 많이 빠름 — 페이스 조절';
+    const slow = diff > 0;
+    const much = zone.startsWith('much');
+    sb.className = 'status-bar ' + (slow ? 'slow' : 'fast');
+    stText.textContent = (slow ? (much ? '▼▼ ' : '▼ ') : (much ? '▲▲ ' : '▲ ')) +
+      '목표보다 ' + speakDur(Math.abs(diff)) + (slow ? ' 느림' : ' 빠름');
   }
 
   // Metrics
@@ -2183,6 +2244,9 @@ function startRun() {
   armPocketIdle();
 
   startGpsWatchdog();
+  lastReportAt = Date.now();
+  clearInterval(reportTimer);
+  reportTimer = setInterval(paceReportTick, 1000);
   if (metroOn) startMetronome();
   if (cheerOn) scheduleCheer();
 
@@ -2221,7 +2285,7 @@ function finishRun() {
   if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
   stopMetronome(); clearTimeout(cheerTimer);
   speechSynthesis.cancel(); voiceQueue = []; isSpeaking = false;
-  exitPocket(); clearTimeout(pocketIdleTimer); releaseAwake(); stopKeepAlive(); clearInterval(gpsWatchdogId);
+  exitPocket(); clearTimeout(pocketIdleTimer); releaseAwake(); stopKeepAlive(); clearInterval(gpsWatchdogId); clearInterval(reportTimer);
 
   const elapsed = elapsedSec();
   const dist = totalDistanceM / 1000;
