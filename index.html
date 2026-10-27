@@ -1004,7 +1004,7 @@ input[type=range]::-moz-range-thumb {
           <div class="voice-diag" id="voiceDiag"></div>
         </div>
         <div class="report-block">
-          <div class="voice-pick-label">현재 페이스 읽어주기</div>
+          <div class="voice-pick-label">현재·평균 페이스 읽어주기</div>
           <div class="seg seg-5" id="reportSeg">
             <button class="seg-btn" data-sec="0">끔</button>
             <button class="seg-btn" data-sec="30">30초</button>
@@ -1012,7 +1012,16 @@ input[type=range]::-moz-range-thumb {
             <button class="seg-btn" data-sec="120">2분</button>
             <button class="seg-btn" data-sec="300">5분</button>
           </div>
-          <div class="report-hint" id="reportHint">1분마다 "현재 페이스 6분 10초, 목표보다 20초 느려요"처럼 알려드려요.</div>
+          <div class="report-hint" id="reportHint"></div>
+        </div>
+        <div class="report-block">
+          <div class="voice-pick-label">구간 기록 알림</div>
+          <div class="seg" id="mileSeg">
+            <button class="seg-btn active" data-mile="1">1km</button>
+            <button class="seg-btn" data-mile="2">2km</button>
+            <button class="seg-btn" data-mile="5">5km</button>
+          </div>
+          <div class="report-hint" id="mileHint">1km마다 "2킬로미터. 이번 1킬로 5분 42초, 평균 5분 38초"처럼 알려드려요.</div>
         </div>
       </div>
     </div>
@@ -1098,17 +1107,6 @@ input[type=range]::-moz-range-thumb {
           <span class="slider-line-label">빈도</span>
           <input type="range" id="cheerFreq" min="15" max="90" value="40" step="5" aria-label="응원 빈도">
           <div class="slider-val" id="cheerFreqVal">약 40초</div>
-        </div>
-        <div class="slider-line" style="margin-top:12px;">
-          <span class="slider-line-label">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21 Q5 14 5 9.5 a7 7 0 0 1 14 0 Q19 14 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
-            거리
-          </span>
-          <div class="seg" id="mileSeg">
-            <button class="seg-btn active" data-mile="1">1km</button>
-            <button class="seg-btn" data-mile="2">2km</button>
-            <button class="seg-btn" data-mile="5">5km</button>
-          </div>
         </div>
       </div>
     </div>
@@ -1491,6 +1489,9 @@ document.querySelectorAll('#mileSeg .seg-btn').forEach(b => {
     document.querySelectorAll('#mileSeg .seg-btn').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     milestoneStepKm = +b.dataset.mile;
+    $('mileHint').textContent = milestoneStepKm === 1
+      ? '1km마다 "2킬로미터. 이번 1킬로 5분 42초, 평균 5분 38초"처럼 알려드려요.'
+      : milestoneStepKm + 'km마다 "' + milestoneStepKm * 2 + '킬로미터. 최근 ' + milestoneStepKm + '킬로 1킬로당 5분 42초, 평균 5분 38초"처럼 알려드려요.';
   };
 });
 
@@ -1804,8 +1805,8 @@ try { const v = localStorage.getItem('paceone.report'); if (v !== null && [0,30,
 function renderReportSeg() {
   document.querySelectorAll('#reportSeg .seg-btn').forEach(b => b.classList.toggle('active', +b.dataset.sec === paceReportSec));
   $('reportHint').textContent = paceReportSec
-    ? (paceReportSec >= 60 ? paceReportSec / 60 + '분' : paceReportSec + '초') + '마다 "현재 페이스 6분 10초, 목표보다 20초 느려요"처럼 알려드려요.'
-    : '정기 안내는 끄고, 페이스가 벗어났을 때만 알려드려요.';
+    ? (paceReportSec >= 60 ? paceReportSec / 60 + '분' : paceReportSec + '초') + '마다 "현재 5분 50초, 평균 5분 40초"처럼 알려드려요. 목표에서 벗어나면 "목표보다 20초 느려요"로 따로 알려드려요.'
+    : '정기 안내는 끄고, 목표에서 벗어났을 때만 알려드려요.';
 }
 document.querySelectorAll('#reportSeg .seg-btn').forEach(b => {
   b.onclick = () => {
@@ -1816,6 +1817,11 @@ document.querySelectorAll('#reportSeg .seg-btn').forEach(b => {
   };
 });
 renderReportSeg();
+// 전체 평균 페이스 (일시정지 제외, 200m 이상 달린 뒤부터)
+function avgPaceSec() {
+  const km = totalDistanceM / 1000;
+  return km >= 0.2 ? elapsedSec() / km : NaN;
+}
 function paceReportTick() {
   if (!running || paused || gpsLost || !paceReportSec) return;
   if (currentSpeedMps < CFG.MIN_SPEED_COACH) return;
@@ -1824,11 +1830,9 @@ function paceReportTick() {
   if (now - startTime < 20000) return;          // 시작 직후 GPS 안정화 대기
   lastReportAt = now;
   const cur = 1000 / currentSpeedMps;
-  const zone = getCoachZone(cur - targetPaceSec);
-  const msg = paceSentence(cur, zone);
-  // 정기 안내 직후 같은 내용의 코칭이 바로 이어지지 않게
-  const dir = zone === 'on_pace' ? 'ok' : zone.includes('slow') ? 'slow' : 'fast';
-  lastCoachTime[dir] = now;
+  const avg = avgPaceSec();
+  let msg = '현재 ' + speakPace(Math.round(cur / 5) * 5);
+  msg += isFinite(avg) ? ', 평균 ' + speakPace(Math.round(avg / 5) * 5) + '.' : '. 평균은 아직 재는 중이에요.';
   enqueue('pace_report', msg, 1);
 }
 
@@ -1865,6 +1869,8 @@ function coachingTick() {
 
   // 상태 지속 확인
   if (now - coachStateStart < CFG.COACH_CONFIRM_MS) return;
+  // 정기 안내 직후 8초는 겹치지 않게 대기
+  if (now - lastReportAt < 8000) return;
 
   // 쿨다운 확인
   const direction = zone === 'on_pace' ? 'ok' : zone.includes('slow') ? 'slow' : 'fast';
@@ -1959,16 +1965,25 @@ function scheduleCheer() {
     scheduleCheer();
   }, delay);
 }
+// 구간 기록: 1/2/5km마다 "이번 구간 페이스 + 전체 평균" (응원 설정과 무관하게 동작)
+let lastSplitElapsed = 0;
 function checkMilestone() {
-  if (!cheerOn || !running || paused) return;
+  if (!running || paused) return;
   const km = Math.floor(totalDistanceM / 1000 / milestoneStepKm) * milestoneStepKm;
   if (km > lastMilestoneKm && km > 0) {
+    const el = elapsedSec();
+    const segKm = km - lastMilestoneKm;
+    const split = (el - lastSplitElapsed) / segKm;
+    const avg = el / (totalDistanceM / 1000);
     lastMilestoneKm = km;
-    const msgs = [
-      `${km}킬로미터 통과했어요. 좋은 페이스예요.`,
-      `${km}킬로미터! 계속 이 리듬 유지해요.`,
-    ];
-    enqueue('milestone_' + km, msgs[km % 2], 2);
+    lastSplitElapsed = el;
+    const sp = speakPace(Math.round(split)), av = speakPace(Math.round(avg));
+    const msg = segKm === 1
+      ? `${km}킬로미터. 이번 1킬로 ${sp}, 평균 ${av}.`
+      : `${km}킬로미터. 최근 ${segKm}킬로 1킬로당 ${sp}, 평균 ${av}.`;
+    lastReportAt = Date.now();                    // 정기 안내와 겹치지 않게
+    enqueue('split', msg, 1);
+    coachLog.push({ time: el, msg: `${km}km 구간 ${fmtPace(split)} · 평균 ${fmtPace(avg)}` });
   }
 }
 
@@ -2230,7 +2245,7 @@ function startRun() {
   coachState = 'idle'; coachStateStart = 0;
   lastCoachTime = { slow: 0, fast: 0, ok: 0 };
   onPaceTicks = 0; goodPaceTicks = 0; totalPaceTicks = 0;
-  coachLog = []; lastMilestoneKm = 0; lastGpsTime = null; gpsLost = false;
+  coachLog = []; lastMilestoneKm = 0; lastSplitElapsed = 0; lastGpsTime = null; gpsLost = false;
 
   showScreen('run');
   $('runTarget').textContent = fmtPace(targetPaceSec);
